@@ -1,5 +1,6 @@
 # ---- Etapa 1: build de la app Angular ----
-FROM node:22-alpine AS build
+# Node 24 (>= 24.15) — Angular 22 exige 22.22.3 / 24.15 / 26 como mínimo.
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # Instala dependencias con la lockfile (cache eficiente)
