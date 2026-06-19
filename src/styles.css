@@ -1,0 +1,220 @@
+/* Tailwind CSS v4 (capa única de importación) */
+@import 'tailwindcss';
+
+/* Estilos del propio Leaflet (mapa, controles, popups) */
+@import 'leaflet/dist/leaflet.css';
+
+/* El modo oscuro se activa con la clase `.dark` en <html> (la pone ThemeService). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ----------------------------------------------------------------
+   DESIGN TOKENS SEMÁNTICOS
+   Los componentes usan `bg-surface`, `text-text`, `border-border`…
+   en vez de colores fijos. El modo oscuro solo redefine las variables
+   de abajo: el resto de la app cambia sola.
+   ---------------------------------------------------------------- */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-btn: var(--primary-btn);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+  --color-star: var(--star);
+}
+
+/* Tema CLARO (por defecto) — paleta tipo iOS "grouped" */
+:root {
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --surface-2: #f2f2f7;
+  --text: #1c1c1e;
+  --muted: #6e6e73;
+  --border: #e5e5ea;
+  --primary: #6366f1; /* índigo (acento de texto/iconos/indicadores) */
+  --primary-btn: #6366f1; /* índigo sólido para botones primarios */
+  --on-primary: #ffffff;
+  --danger: #ef4444;
+  --star: #d4af37; /* dorado de "Favorito" */
+  color-scheme: light;
+}
+
+/* Tema OSCURO — superficies elevadas tipo iOS dark */
+.dark {
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --surface-2: #2c2c2e;
+  --text: #f5f5f7;
+  --muted: #9a9aa0;
+  --border: #38383a;
+  --primary: #a5b4fc; /* índigo claro para que resalte sobre oscuro */
+  --primary-btn: #6366f1;
+  --on-primary: #ffffff;
+  --danger: #ff5a52;
+  --star: #e3c04b;
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+/* Foco visible accesible y consistente en controles interactivos */
+:where(button, a, [role='button']):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* ----------------------------------------------------------------
+   CLASES DE COMPONENTE REUTILIZABLES (estética iOS: muy redondeado,
+   superficies en capas, transiciones suaves)
+   ---------------------------------------------------------------- */
+@layer components {
+  /* Tarjeta / superficie elevada */
+  .tarjeta {
+    @apply rounded-3xl bg-surface ring-1 ring-border;
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.04),
+      0 8px 24px -16px rgb(0 0 0 / 0.18);
+  }
+
+  /* Campo de formulario (input / select / textarea) */
+  .campo {
+    @apply w-full rounded-2xl border border-border bg-surface px-4 py-3 text-base text-text outline-none transition;
+    @apply placeholder:text-muted focus:border-primary focus:ring-4 focus:ring-primary/15;
+  }
+
+  .etiqueta {
+    @apply mb-1.5 block text-sm font-medium text-text;
+  }
+
+  /* Botón primario (acento índigo) */
+  .btn-primario {
+    @apply rounded-2xl bg-primary-btn py-3.5 text-base font-semibold text-on-primary shadow-sm transition;
+    @apply active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  /* Botón secundario "suave" (superficie en capa) */
+  .btn-suave {
+    @apply rounded-2xl bg-surface-2 py-3 text-base font-medium text-text ring-1 ring-border transition active:scale-[0.98];
+  }
+
+  /* Pastilla de la pestaña inferior activa (acento translúcido) */
+  .tab-activa {
+    background-color: color-mix(in srgb, var(--primary) 16%, transparent);
+  }
+}
+
+/* ----------------------------------------------------------------
+   ANIMACIONES (CSS puro, compatibles con zoneless)
+   ---------------------------------------------------------------- */
+@keyframes pt-subir {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes pt-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pt-toast {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@keyframes pt-escala {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animar-sheet {
+  animation: pt-subir 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.animar-fade {
+  animation: pt-aparecer 0.2s ease-out;
+}
+.animar-toast {
+  animation: pt-toast 0.22s ease-out;
+}
+.animar-escala {
+  animation: pt-escala 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animar-sheet,
+  .animar-fade,
+  .animar-toast,
+  .animar-escala {
+    animation: none;
+  }
+}
+
+/* ----------------------------------------------------------------
+   Ajustes de Leaflet
+   ---------------------------------------------------------------- */
+/* Cursor de "pinchar para añadir" sobre el mapa (cruz de colocación) */
+.leaflet-container {
+  cursor: crosshair;
+}
+/* Mientras se arrastra el mapa, cursor de agarre normal */
+.leaflet-container.leaflet-drag-target,
+.leaflet-dragging .leaflet-container {
+  cursor: grabbing;
+}
+/* Sobre marcadores y controles, cursor normal de "pulsable" */
+.leaflet-marker-icon,
+.leaflet-control a,
+.leaflet-control-zoom a {
+  cursor: pointer;
+}
+
+.leaflet-popup-content {
+  margin: 0.75rem 0.875rem;
+  font-family: inherit;
+}
+
+/* Marcador "gota": el divIcon no debe tener fondo ni borde propios */
+.marcador-piso {
+  background: transparent;
+  border: 0;
+}

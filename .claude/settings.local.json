@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(npx -y @angular/cli version 2>$null)",
+      "PowerShell(Get-Command node | Select-Object Source; \\(Get-Command node\\).Source; & node --version; Get-Command npx | Select-Object Source; Get-Command npm | Select-Object Source)",
+      "PowerShell(where.exe node; \"---\"; where.exe npm; \"---\"; $env:PATH -split ';' | Where-Object { $_ -match 'node' -or $_ -match 'nvm' }; \"--- npm prefix ---\"; npm config get prefix)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}

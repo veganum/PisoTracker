@@ -1,0 +1,350 @@
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'buscandoDireccion' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:92:21:
+[37m      92 │                 @if ([32mbuscandoDireccion[37m()) {
+         ╵                      [32m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'mostrarSugerencias' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:249:64:
+[37m      249 │ ...)="inmobiliaria.set(valor($event)); [32mmostrarSugerencias[37m.set(true)"
+          ╵                                        [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'mostrarSugerencias' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:250:31:
+[37m      250 │                       (focus)="[32mmostrarSugerencias[37m.set(true)"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'cerrarSugerenciasDiferido' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:251:30:
+[37m      251 │                       (blur)="[32mcerrarSugerenciasDiferido[37m()"
+          ╵                               [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'mostrarSugerencias' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:259:44:
+[37m      259 │                         [class.rotate-180]="[32mmostrarSugerencias[37m()"
+          ╵                                             [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'mostrarSugerencias' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:264:25:
+[37m      264 │                     @if ([32mmostrarSugerencias[37m() && sugerenciasInmob...
+          ╵                          [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'sugerenciasInmobiliaria' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:264:49:
+[37m      264 │ ... (mostrarSugerencias() && [32msugerenciasInmobiliaria[37m().length > 0) {
+          ╵                              [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'sugerenciasInmobiliaria' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:268:40:
+[37m      268 │ ...       @for (nombre of [32msugerenciasInmobiliaria[37m(); track nombre) {
+          ╵                           [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'elegirInmobiliaria' does not exist on type 'PisoForm'. Did you mean 'inmobiliaria'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:273:39:
+[37m      273 │                               (click)="[32melegirInmobiliaria[37m(nombre)"
+          ╵                                        [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'cerrarSugerenciasDiferido' does not exist on type 'PisoForm'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:251:30:
+[37m      251 │                       (blur)="[32mcerrarSugerenciasDiferido[37m()"
+          ╵                               [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'elegirInmobiliaria' does not exist on type 'PisoForm'. Did you mean 'inmobiliaria'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/piso-form/piso-form.ts:273:39:
+[37m      273 │                               (click)="[32melegirInmobiliaria[37m(nombre)"
+          ╵                                        [32m~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32ma[37mñadir()"
+         ╵                                [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32ma[37mñadir()"
+          ╵                        [32m^[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: GuionView is not used within the template of PisosPage[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/pisos.page.ts:36:4:
+[37m      36 │     [32mGuionView[37m,
+         ╵     [32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32ma[37mñadir()"
+         ╵                                [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32ma[37mñadir()"
+          ╵                        [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32ma[37mñadir()"
+         ╵                                [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32ma[37mñadir()"
+          ╵                        [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32ma[37mñadir()"
+         ╵                                [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32ma[37mñadir()"
+          ╵                        [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32ma[37mñadir()"
+         ╵                                [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32ma[37mñadir()"
+          ╵                        [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@98:31[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32mañadir([37m)"
+         ╵                                [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:99:31:
+[37m      99 │               (keydown.enter)="[32ma[37mñadir()"
+         ╵                                [32m^[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()] at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Parser Error: Unexpected token 'Lexer Error: Unexpected character [ñ] at column 2 in expression [añadir()]' at column 3 in [añadir()] in C:/Users/vegan/Desktop/Proyectos/PisoTracker/src/app/features/pisos/ui/guion-bloque/guion-bloque.ts@104:23[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32mañadir([37m)"
+          ╵                        [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'a' does not exist on type 'GuionBloque'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/ui/guion-bloque/guion-bloque.ts:105:23:
+[37m      105 │               (click)="[32ma[37mñadir()"
+          ╵                        [32m^[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: All imports are unused[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/pisos.page.ts:31:2:
+[37m      31 │   [32mimports[37m: [
+         ╵   [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG5002: Unexpected closing tag "main". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/pisos/pisos.page.ts:119:6:
+[37m      119 │       [32m</main>[37m
+          ╵       [32m~~~~~~~[0m
+
+
