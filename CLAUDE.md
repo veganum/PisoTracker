@@ -39,11 +39,12 @@ src/app/
 │   ├── persistence/       → StoragePort (puerto), adaptadores, InjectionToken
 │   └── theme/             → ThemeService (claro/oscuro)
 └── features/pisos/
-    ├── models/            → Piso, EstadoPipeline (+ colores), Guion, tipos
-    ├── data/              → PisosStore, GuionStore, seeds, puntuación,
-    │                        toast, geocoding
-    ├── ui/<vista>/        → mapa, lista, favoritos, agencias, guion(+bloque),
-    │                        form, card, diálogo
+    ├── models/            → Piso, EstadoPipeline (flujo/laterales + colores),
+    │                        madrid (distritos+barrios), Contacto, Guion, tipos
+    ├── data/              → PisosStore, GuionStore, seeds (pisos/contactos/guion),
+    │                        puntuación, toast, geocoding
+    ├── ui/<vista>/        → mapa, lista, favoritos, inmobiliarias(+contacto-card),
+    │                        guion(+bloque), form, card, diálogo
     └── pisos.page.ts      → shell con pestañas inferiores
 ```
 
@@ -62,19 +63,24 @@ El estado se persiste a través del **puerto** `STORAGE`
 
 - Un futuro `RestApiAdapter` / `IndexedDbAdapter` solo implementa `StoragePort`
   y se registra ahí; ni los stores ni los componentes cambian.
-- **Claves de almacenamiento:** `pisotracker.pisos`, `pisotracker.inmobiliarias`,
-  `pisotracker.guion`, `pisotracker.tema`.
+- **Claves de almacenamiento:** `pisotracker.pisos`, `pisotracker.inmobiliarias`
+  (guarda `Contacto[]`: inmobiliarias **y** financieras), `pisotracker.guion`,
+  `pisotracker.tema`.
 
 ## Estado central
 
 ### `PisosStore` (`providedIn: 'root'`)
 
 - `pisos = signal<Piso[]>(...)` inicializado desde el puerto (o el seed si está vacío).
-- `condiciones = signal<CondicionesInmobiliaria[]>(...)` para las agencias.
+  Al cargar se **migran** pisos antiguos (barrio plano → `distrito` + `barrio`).
+- `contactos = signal<Contacto[]>(...)` inmobiliarias + financieras (seed si vacío;
+  migra el formato antiguo `CondicionesInmobiliaria` a `Contacto`).
 - `effect()` que persiste automáticamente cada cambio vía el puerto.
-- `computed()`: `rango`, `favoritos` (puntuados y ordenados),
-  `nombresInmobiliarias`, `agencias`.
-- Mutaciones: `añadir`, `actualizar`, `borrar`, `guardarCondiciones`.
+- `computed()`: `rango`, `favoritos` (puntuados y ordenados), `nombresInmobiliarias`
+  (detectadas en pisos), `inmobiliarias` (detectadas + creadas), `financieras`,
+  `nombresInmobiliariasSugeridas`.
+- Mutaciones: `añadir`, `actualizar`, `borrar`, `guardarContacto`, `crearContacto`,
+  `borrarContacto`.
 
 ### `GuionStore` (`providedIn: 'root'`)
 
@@ -92,37 +98,54 @@ El estado se persiste a través del **puerto** `STORAGE`
 
 ## Reglas de negocio
 
-- **Pipeline de estados** (con color de marcador): Interesado `#3b82f6`,
-  Contactado `#f97316`, Agendado `#eab308`, Visitado `#a855f7`, Favorito `#d4af37`.
-  Orden cronológico. "Descartar" = borrado definitivo con confirmación (NO es un
-  estado del pipeline).
+- **Pipeline de estados** (`models/estado-pipeline.ts`, con color de marcador):
+  - **Flujo lineal** (`ESTADOS_FLUJO`): Interesado `#3b82f6` → Contactado `#f97316`
+    → Agendado `#eab308` → Visitado `#a855f7`.
+  - **Laterales** (`ESTADOS_LATERALES`, fuera del flujo): Favorito `#d4af37` ⭐,
+    Pendiente condiciones `#14b8a6` ⏳ (esperando bajada de precio/cambio).
+  - `estado` es UN solo valor de los 6. "Descartar" = borrado con confirmación.
+- **Distritos y barrios** (`models/madrid.ts`): los **21 distritos** oficiales de
+  Madrid con sus **131 barrios**. `Piso` tiene `distrito` (obligatorio) + `barrio`
+  (`string`, opcional). El barrio se valida contra el distrito elegido (selects
+  enlazados). `barriosDe(distrito)` da los barrios.
 - **Puntuación** (`data/puntuacion.util.ts`, función pura): precio inverso 0–10,
   m² directo 0–10, habitaciones ×1.5, estado piso 3/2/1, ascensor +1. Se calcula
   sobre el `rango` (mín/máx de precio y m²) de TODOS los pisos.
 - **Favoritos**: solo `estado === 'Favorito'`, ordenados por puntuación desc, con
   ranking numerado.
-- **Agencias**: se **detectan automáticamente** de los pisos con
-  `tipoContacto === 'Inmobiliaria'`. El `computed` `agencias` fusiona los nombres
-  detectados con las condiciones guardadas (default si no existen).
+- **Contactos** (`models/contacto.model.ts`, un solo modelo con `tipo`
+  discriminador `'Inmobiliaria' | 'Financiera'`):
+  - **Inmobiliarias**: se **detectan** de los pisos con `tipoContacto === 'Inmobiliaria'`
+    y se fusionan con las creadas a mano. Campos: contacto, tel/email/web, distritos
+    donde trabaja (multi-select), honorarios comprador/vendedor (nº + €/%), exclusiva,
+    financiación propia/Kiron, dirección, valoración, observaciones.
+  - **Financieras/brokers** (solo manuales): subtipo Banco/Broker, Registrado BdE,
+    entidades, financiación máx %, financia gastos, fija/mixta, comisiones, vinculaciones,
+    días de aprobación, preaprobación online.
 - **Guion**: 3 bloques semilla (Visita al piso / Financiera-hipoteca /
   Inmobiliaria-propietario) con preguntas editables. Checklist **global** (las
   marcas no son por piso); botón "Reiniciar" desmarca todo.
 - **Formulario** (`ui/piso-form`): signal-first (un signal por campo, validaciones
-  con `computed`). Validaciones: dirección obligatoria; `fechaCita` obligatoria si
-  `estado === 'Agendado'`; campo inmobiliaria visible si
-  `tipoContacto === 'Inmobiliaria'`.
+  con `computed`). Validaciones: dirección obligatoria; **distrito obligatorio**;
+  `fechaCita` obligatoria si `estado === 'Agendado'`; campo inmobiliaria visible si
+  `tipoContacto === 'Inmobiliaria'`. El estado se elige con un **stepper** (los 4 del
+  flujo) + chips para los laterales.
 - **Geocodificación inversa** (`data/geocoding.service.ts`): al pinchar el mapa en
   un **alta nueva**, llama a **Nominatim (OSM)** vía `fetch` y autocompleta
-  Dirección y Barrio (best-effort; no pisa lo que el usuario ya haya escrito).
-  Degrada a entrada manual si falla. Límite responsable ~1 req/seg.
+  Dirección, **Distrito y Barrio** (best-effort; no pisa lo que el usuario ya haya
+  escrito). Degrada a entrada manual si falla. Límite responsable ~1 req/seg.
 - **Sugerencia de inmobiliaria**: el campo usa un **desplegable propio** (no
-  `<datalist>`) que sugiere agencias existentes y permite escribir nuevas.
+  `<datalist>`) que sugiere inmobiliarias existentes y permite escribir nuevas.
 
 ## UI / UX
 
 - **Pestañas inferiores** fijas (5): 🗺️ Mapa · 📋 Lista · ⭐ Favoritos ·
-  🏢 Agencias · 📝 Guion. Pastilla de acento (`.tab-activa`) en la activa.
+  🏢 Inmob. · 📝 Guion (`id: 'agencias'`, etiqueta abreviada para que quepa en
+  móvil). Pastilla de acento (`.tab-activa`) en la activa.
 - **FAB "+"** (alta de piso) **solo en Mapa y Lista** (`@if tab === 'mapa'||'lista'`).
+- **Vista Inmob.**: un segmentado superior **filtra** entre Inmobiliarias y
+  Financieras (se muestra una sola lista) y fija el **tipo** del alta. Teléfono/email
+  con chips de **📋 copiar** (portapapeles + toast) y **📞/✉️** (tel:/mailto).
 - **Mapa**: clic añade piso con coordenadas fijadas; cursor `crosshair`; la leyenda
   captura el clic (NO añade). Tiles **OSM siempre**, también en modo oscuro.
 - **Estilo iOS suave** con **design tokens semánticos** (Tailwind v4 `@theme inline`
