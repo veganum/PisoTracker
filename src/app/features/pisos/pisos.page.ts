@@ -192,7 +192,7 @@ export class PisosPage {
     { id: 'mapa', icono: '🗺️', etiqueta: 'Mapa' },
     { id: 'lista', icono: '📋', etiqueta: 'Lista' },
     { id: 'favoritos', icono: '⭐', etiqueta: 'Favoritos' },
-    { id: 'agencias', icono: '🏢', etiqueta: 'Agencias' },
+    { id: 'agencias', icono: '🏢', etiqueta: 'Inmob.' },
     { id: 'guion', icono: '📝', etiqueta: 'Guion' },
   ];
 

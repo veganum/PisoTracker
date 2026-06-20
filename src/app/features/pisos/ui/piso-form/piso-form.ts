@@ -11,10 +11,15 @@ import {
 } from '@angular/core';
 import { GeocodingService } from '../../data/geocoding.service';
 import { PisosStore } from '../../data/pisos.store';
-import { ESTADOS_PIPELINE, EstadoPipeline } from '../../models/estado-pipeline';
 import {
-  BARRIOS,
-  Barrio,
+  colorEstado,
+  ESTADOS_FLUJO,
+  ESTADOS_LATERALES,
+  ESTADOS_PIPELINE,
+  EstadoPipeline,
+} from '../../models/estado-pipeline';
+import { barriosDe, Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
+import {
   ESTADOS_PISO,
   EstadoPiso,
   Piso,
@@ -101,14 +106,40 @@ import {
                 }
               </label>
 
-              <label class="block">
-                <span class="etiqueta">Barrio</span>
-                <select [value]="barrio()" (change)="barrio.set(asBarrio($event))" class="campo">
-                  @for (b of barrios; track b) {
-                    <option [value]="b">{{ b }}</option>
-                  }
-                </select>
-              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="block">
+                  <span class="etiqueta">Distrito *</span>
+                  <select
+                    [value]="distrito()"
+                    (change)="cambiarDistrito(valor($event))"
+                    class="campo"
+                    [class.border-danger]="!distritoValido()"
+                  >
+                    <option value="">Selecciona…</option>
+                    @for (d of distritos; track d) {
+                      <option [value]="d">{{ d }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="block">
+                  <span class="etiqueta">Barrio</span>
+                  <select
+                    [value]="barrio()"
+                    (change)="barrio.set(valor($event))"
+                    [disabled]="barriosDisponibles().length === 0"
+                    class="campo disabled:opacity-50"
+                  >
+                    <option value="">(sin especificar)</option>
+                    @for (b of barriosDisponibles(); track b) {
+                      <option [value]="b">{{ b }}</option>
+                    }
+                  </select>
+                </label>
+              </div>
+              @if (!distritoValido()) {
+                <span class="-mt-1 block px-1 text-xs text-danger">El distrito es obligatorio.</span>
+              }
 
               <label class="block">
                 <span class="etiqueta">URL del anuncio</span>
@@ -298,8 +329,40 @@ import {
             <div class="tarjeta space-y-3 p-4">
               <div>
                 <span class="etiqueta">Estado en el pipeline</span>
-                <div class="flex flex-wrap gap-2">
-                  @for (e of estadosPipeline; track e.valor) {
+
+                <!-- Stepper del flujo lineal -->
+                <div class="flex items-center px-1">
+                  @for (e of estadosFlujo; track e.valor; let i = $index; let primero = $first) {
+                    @if (!primero) {
+                      <span
+                        class="h-0.5 flex-1 rounded transition-colors"
+                        [style.background-color]="i <= indiceFlujo() ? e.color : 'var(--color-border)'"
+                      ></span>
+                    }
+                    <button
+                      type="button"
+                      (click)="estado.set(e.valor)"
+                      [attr.aria-label]="e.valor"
+                      class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition"
+                      [style.border-color]="i <= indiceFlujo() ? e.color : 'var(--color-border)'"
+                      [style.background-color]="i <= indiceFlujo() ? e.color : 'transparent'"
+                      [class.text-white]="i <= indiceFlujo()"
+                      [class.text-muted]="i > indiceFlujo()"
+                    >
+                      {{ i < indiceFlujo() ? '✓' : i + 1 }}
+                    </button>
+                  }
+                </div>
+
+                <!-- Estado actual + significado -->
+                <p class="mt-2 text-center text-sm font-semibold" [style.color]="colorActual()">
+                  {{ estado() }}
+                </p>
+                <p class="text-center text-xs text-muted">{{ significadoEstado() }}</p>
+
+                <!-- Estados laterales (no son fase del flujo) -->
+                <div class="mt-3 flex flex-wrap justify-center gap-2">
+                  @for (e of estadosLaterales; track e.valor) {
                     <button
                       type="button"
                       (click)="estado.set(e.valor)"
@@ -309,15 +372,10 @@ import {
                       [class.text-white]="estado() === e.valor"
                       [class.text-text]="estado() !== e.valor"
                     >
-                      <span
-                        class="h-2 w-2 rounded-full"
-                        [style.background-color]="estado() === e.valor ? '#ffffff' : e.color"
-                      ></span>
-                      {{ e.valor }}
+                      {{ e.icono }} {{ e.valor }}
                     </button>
                   }
                 </div>
-                <p class="mt-1.5 px-1 text-xs text-muted">{{ significadoEstado() }}</p>
               </div>
 
               @if (citaRequerida()) {
@@ -377,8 +435,8 @@ export class PisoForm implements OnInit {
   /** Indica que se está resolviendo la dirección del punto del mapa. */
   readonly buscandoDireccion = signal(false);
 
-  /** Inmobiliarias ya conocidas (para sugerir en el campo, permitiendo nuevas). */
-  readonly inmobiliariasExistentes = this.store.nombresInmobiliarias;
+  /** Inmobiliarias ya conocidas (detectadas + creadas a mano) para sugerir. */
+  readonly inmobiliariasExistentes = this.store.nombresInmobiliariasSugeridas;
 
   /** Visibilidad del desplegable de sugerencias de inmobiliaria. */
   readonly mostrarSugerencias = signal(false);
@@ -391,14 +449,17 @@ export class PisoForm implements OnInit {
   });
 
   // Opciones para los selectores
-  readonly barrios = BARRIOS;
+  readonly distritos = DISTRITOS_NOMBRES;
   readonly estadosPiso = ESTADOS_PISO;
   readonly tiposContacto = TIPOS_CONTACTO;
   readonly estadosPipeline = ESTADOS_PIPELINE;
+  readonly estadosFlujo = ESTADOS_FLUJO;
+  readonly estadosLaterales = ESTADOS_LATERALES;
 
   // --- Estado del formulario (un signal por campo) ---
   readonly direccion = signal('');
-  readonly barrio = signal<Barrio>('Usera');
+  readonly distrito = signal<Distrito | ''>('');
+  readonly barrio = signal('');
   readonly url = signal('');
   readonly precio = signal(0);
   readonly metros = signal(0);
@@ -415,23 +476,38 @@ export class PisoForm implements OnInit {
   readonly lat = signal(40.4168);
   readonly lng = signal(-3.7038);
 
+  /** Barrios del distrito seleccionado (vacío si no hay distrito). */
+  readonly barriosDisponibles = computed(() => barriosDe(this.distrito()));
+
   // --- Validaciones (computed) ---
   readonly esEditar = computed(() => this.pisoInicial() !== null);
   readonly direccionValida = computed(() => this.direccion().trim().length > 0);
+  readonly distritoValido = computed(() => this.distrito() !== '');
   readonly citaRequerida = computed(() => this.estado() === 'Agendado');
   readonly citaValida = computed(() => !this.citaRequerida() || this.fechaCita().trim().length > 0);
   readonly esInmobiliaria = computed(() => this.tipoContacto() === 'Inmobiliaria');
-  readonly formValido = computed(() => this.direccionValida() && this.citaValida());
+  readonly formValido = computed(
+    () => this.direccionValida() && this.distritoValido() && this.citaValida(),
+  );
   /** Significado del estado seleccionado (texto de ayuda). */
   readonly significadoEstado = computed(
     () => this.estadosPipeline.find((e) => e.valor === this.estado())?.significado ?? '',
   );
+
+  /** Índice del estado actual en el flujo lineal (-1 si es un estado lateral). */
+  readonly indiceFlujo = computed(() =>
+    this.estadosFlujo.findIndex((e) => e.valor === this.estado()),
+  );
+
+  /** Color del estado actual (para la etiqueta del stepper). */
+  readonly colorActual = computed(() => colorEstado(this.estado()));
 
   ngOnInit(): void {
     const p = this.pisoInicial();
     if (p) {
       // Siembra desde el piso a editar
       this.direccion.set(p.direccion);
+      this.distrito.set(p.distrito);
       this.barrio.set(p.barrio);
       this.url.set(p.url);
       this.precio.set(p.precio);
@@ -465,13 +541,15 @@ export class PisoForm implements OnInit {
     this.buscandoDireccion.set(true);
     this.geocoding
       .reverse(lat, lng)
-      .then(({ direccion, barrio }) => {
+      .then(({ direccion, distrito, barrio }) => {
         // Solo rellenamos si el usuario no ha empezado a escribir la dirección.
         if (direccion && !this.direccion().trim()) {
           this.direccion.set(direccion);
         }
-        if (barrio) {
-          this.barrio.set(barrio);
+        // Distrito/barrio detectados: rellenamos si aún no hay distrito elegido.
+        if (distrito && this.distrito() === '') {
+          this.distrito.set(distrito);
+          this.barrio.set(barrio ?? '');
         }
       })
       .finally(() => this.buscandoDireccion.set(false));
@@ -486,6 +564,7 @@ export class PisoForm implements OnInit {
     const piso: Piso = {
       id: base?.id ?? crypto.randomUUID(),
       direccion: this.direccion().trim(),
+      distrito: this.distrito() as Distrito, // validado: distritoValido() garantiza ≠ ''
       barrio: this.barrio(),
       url: this.url().trim(),
       precio: this.precio(),
@@ -528,7 +607,10 @@ export class PisoForm implements OnInit {
   marcado(ev: Event): boolean {
     return (ev.target as HTMLInputElement).checked;
   }
-  asBarrio(ev: Event): Barrio {
-    return this.valor(ev) as Barrio;
+
+  /** Cambia el distrito y resetea el barrio (los barrios dependen del distrito). */
+  cambiarDistrito(valor: string): void {
+    this.distrito.set(valor as Distrito | '');
+    this.barrio.set('');
   }
 }

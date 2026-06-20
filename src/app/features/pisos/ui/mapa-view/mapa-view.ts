@@ -162,7 +162,7 @@ export class MapaView {
     return `
       <div style="min-width:180px;font-family:inherit">
         <p style="margin:0;font-weight:700;color:#18181b">${this.escapar(piso.direccion)}</p>
-        <p style="margin:2px 0 0;font-size:12px;color:#71717a">Barrio: <b>${this.escapar(piso.barrio)}</b></p>
+        <p style="margin:2px 0 0;font-size:12px;color:#71717a">${this.escapar(piso.distrito)}${piso.barrio ? ' · ' + this.escapar(piso.barrio) : ''}</p>
         <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#18181b">${precio} €</p>
         <span style="display:inline-block;margin-top:6px;padding:2px 8px;border-radius:9999px;
               font-size:11px;font-weight:700;color:#fff;background:${color}">${piso.estado}</span>

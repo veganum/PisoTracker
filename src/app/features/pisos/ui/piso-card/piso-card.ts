@@ -17,7 +17,7 @@ import { Piso } from '../../models/piso.model';
       <!-- Cabecera: barrio + estado bien visibles -->
       <header class="flex items-center justify-between gap-2 px-4 pt-3.5">
         <span class="text-xs font-semibold uppercase tracking-wide text-muted">
-          {{ piso().barrio }}
+          {{ piso().distrito }}{{ piso().barrio ? ' · ' + piso().barrio : '' }}
         </span>
         <span
           class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold text-white"

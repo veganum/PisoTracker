@@ -1,27 +1,5 @@
+import { Distrito } from './madrid';
 import { EstadoPipeline } from './estado-pipeline';
-
-/** Barrios de Madrid contemplados en la búsqueda. */
-export type Barrio =
-  | 'Usera'
-  | 'Carabanchel'
-  | 'Villaverde'
-  | 'Almendrales'
-  | 'Vallecas'
-  | 'Latina'
-  | 'Arganzuela'
-  | 'Otro';
-
-/** Lista de barrios para poblar selectores. */
-export const BARRIOS: readonly Barrio[] = [
-  'Usera',
-  'Carabanchel',
-  'Villaverde',
-  'Almendrales',
-  'Vallecas',
-  'Latina',
-  'Arganzuela',
-  'Otro',
-];
 
 /** Estado material del inmueble. */
 export type EstadoPiso = 'Listo para entrar' | 'Reforma parcial' | 'Reforma total';
@@ -47,7 +25,10 @@ export interface Piso {
 
   // --- Localización ---
   direccion: string;
-  barrio: Barrio;
+  /** Distrito de Madrid (obligatorio). */
+  distrito: Distrito;
+  /** Barrio administrativo dentro del distrito ('' si no se especifica). */
+  barrio: string;
   url: string;
 
   // --- Inmueble ---
@@ -72,21 +53,4 @@ export interface Piso {
   // --- Mapa ---
   lat: number;
   lng: number;
-}
-
-/**
- * Condiciones económicas pactadas con una inmobiliaria.
- * Se gestionan por separado del piso y se detectan automáticamente a
- * partir de los pisos con `tipoContacto === 'Inmobiliaria'`.
- */
-export interface CondicionesInmobiliaria {
-  /** Nombre de la agencia (clave). */
-  nombre: string;
-  /** Honorarios fijos en euros. */
-  honorarios: number;
-  /** Comisión en porcentaje (%). */
-  comision: number;
-  /** Si trabajan en exclusiva. */
-  exclusiva: boolean;
-  notas: string;
 }

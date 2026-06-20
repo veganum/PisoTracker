@@ -9,7 +9,8 @@ export const PISOS_SEED: Piso[] = [
   {
     id: 'seed-usera',
     direccion: 'Calle de Marcelo Usera, 80',
-    barrio: 'Usera',
+    distrito: 'Usera',
+    barrio: 'Moscardó',
     url: 'https://www.idealista.com/inmueble/ejemplo-usera',
     precio: 185000,
     metros: 72,
@@ -28,6 +29,7 @@ export const PISOS_SEED: Piso[] = [
   {
     id: 'seed-almendrales',
     direccion: 'Calle de Antonio López, 145',
+    distrito: 'Usera',
     barrio: 'Almendrales',
     url: 'https://www.idealista.com/inmueble/ejemplo-almendrales',
     precio: 219000,
@@ -47,7 +49,8 @@ export const PISOS_SEED: Piso[] = [
   {
     id: 'seed-carabanchel',
     direccion: 'Calle del General Ricardos, 210',
-    barrio: 'Carabanchel',
+    distrito: 'Carabanchel',
+    barrio: 'San Isidro',
     url: 'https://www.idealista.com/inmueble/ejemplo-carabanchel',
     precio: 159000,
     metros: 65,

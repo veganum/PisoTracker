@@ -1,110 +1,104 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PisosStore } from '../../data/pisos.store';
-import { CondicionesInmobiliaria } from '../../models/piso.model';
+import { TipoContactoEntidad } from '../../models/contacto.model';
+import { ContactoCard } from '../contacto-card/contacto-card';
 
 /**
- * Vista de inmobiliarias. Detecta automáticamente las agencias presentes en
- * los pisos y permite editar sus condiciones (honorarios, % comisión,
- * exclusiva, notas). Cada cambio se persiste vía el store (upsert).
+ * Vista de contactos. Un segmentado superior **filtra** entre inmobiliarias y
+ * financieras (se muestra solo una lista, menos scroll) y, a la vez, fija el
+ * **tipo** del contacto que se cree con "Añadir".
  */
 @Component({
   selector: 'app-inmobiliarias-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ContactoCard],
   template: `
-    @if (agencias().length === 0) {
-      <div class="tarjeta px-4 py-12 text-center">
-        <p class="text-4xl">🏢</p>
-        <p class="mt-2 text-sm text-muted">
-          No hay inmobiliarias todavía. Se detectan solas al añadir pisos con
-          contacto de tipo "Inmobiliaria".
-        </p>
-      </div>
-    } @else {
-      <div class="space-y-4">
-        @for (agencia of agencias(); track agencia.nombre) {
-          <article class="tarjeta space-y-3 p-4">
-            <div class="flex items-center gap-2.5">
-              <span
-                class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-lg"
-              >
-                🏢
-              </span>
-              <h3 class="text-base font-bold text-text">{{ agencia.nombre }}</h3>
-              @if (agencia.exclusiva) {
-                <span class="ml-auto rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                  Exclusiva
-                </span>
-              }
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <label class="block">
-                <span class="etiqueta">Honorarios (€)</span>
-                <input
-                  type="number"
-                  inputmode="numeric"
-                  [value]="agencia.honorarios"
-                  (input)="actualizar(agencia, { honorarios: num($event) })"
-                  class="campo py-2.5"
-                />
-              </label>
-              <label class="block">
-                <span class="etiqueta">Comisión (%)</span>
-                <input
-                  type="number"
-                  inputmode="decimal"
-                  step="0.1"
-                  [value]="agencia.comision"
-                  (input)="actualizar(agencia, { comision: num($event) })"
-                  class="campo py-2.5"
-                />
-              </label>
-            </div>
-
-            <label class="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3">
-              <input
-                type="checkbox"
-                [checked]="agencia.exclusiva"
-                (change)="actualizar(agencia, { exclusiva: marcado($event) })"
-                class="h-5 w-5 accent-primary-btn"
-              />
-              <span class="text-base font-medium text-text">Trabajan en exclusiva</span>
-            </label>
-
-            <label class="block">
-              <span class="etiqueta">Notas</span>
-              <textarea
-                rows="2"
-                [value]="agencia.notas"
-                (input)="actualizar(agencia, { notas: valor($event) })"
-                placeholder="Trato, condiciones, contacto…"
-                class="campo resize-none py-2.5"
-              ></textarea>
-            </label>
-          </article>
+    <div class="space-y-3">
+      <!-- Segmentado: filtra la lista y fija el tipo de alta -->
+      <div class="flex gap-1 rounded-2xl bg-surface-2 p-1 ring-1 ring-border">
+        @for (t of tipos; track t) {
+          <button
+            type="button"
+            (click)="vista.set(t)"
+            class="flex-1 rounded-xl py-2 text-sm font-semibold transition"
+            [class.bg-surface]="vista() === t"
+            [class.text-text]="vista() === t"
+            [class.shadow-sm]="vista() === t"
+            [class.text-muted]="vista() !== t"
+          >
+            {{ t === 'Inmobiliaria' ? '🏢 Inmobiliarias' : '🏦 Financieras' }}
+            ({{ t === 'Inmobiliaria' ? inmobiliarias().length : financieras().length }})
+          </button>
         }
       </div>
-    }
+
+      <!-- Alta del tipo seleccionado -->
+      <div class="tarjeta flex items-center gap-2 p-3">
+        <input
+          type="text"
+          [value]="nuevoNombre()"
+          (input)="nuevoNombre.set(valor($event))"
+          (keydown.enter)="agregar()"
+          [placeholder]="esInmo() ? 'Nueva inmobiliaria…' : 'Nueva financiera/broker…'"
+          class="campo py-2.5 text-sm"
+        />
+        <button
+          type="button"
+          (click)="agregar()"
+          [disabled]="!nuevoNombre().trim()"
+          class="btn-primario shrink-0 px-4 py-2.5 text-sm"
+        >
+          Añadir
+        </button>
+      </div>
+
+      <!-- Lista de la vista seleccionada -->
+      @if (contactos().length === 0) {
+        <div class="tarjeta px-4 py-10 text-center">
+          <p class="text-4xl">{{ esInmo() ? '🏢' : '🏦' }}</p>
+          <p class="mt-2 text-sm text-muted">
+            @if (esInmo()) {
+              Aún no hay inmobiliarias. Añade una arriba o se detectan al crear
+              pisos con contacto "Inmobiliaria".
+            } @else {
+              Aún no hay financieras. Añade una arriba (Kiron, tu banco, un broker…).
+            }
+          </p>
+        </div>
+      } @else {
+        <div class="space-y-4 pt-1">
+          @for (c of contactos(); track c.nombre) {
+            <app-contacto-card [contacto]="c" />
+          }
+        </div>
+      }
+    </div>
   `,
 })
 export class InmobiliariasView {
   private readonly store = inject(PisosStore);
 
-  readonly agencias = this.store.agencias;
+  readonly inmobiliarias = this.store.inmobiliarias;
+  readonly financieras = this.store.financieras;
 
-  /** Aplica un cambio parcial sobre una agencia y lo persiste (upsert). */
-  actualizar(agencia: CondicionesInmobiliaria, cambios: Partial<CondicionesInmobiliaria>): void {
-    this.store.guardarCondiciones({ ...agencia, ...cambios });
+  readonly tipos: readonly TipoContactoEntidad[] = ['Inmobiliaria', 'Financiera'];
+  /** Tipo mostrado/activo (filtra la lista y fija el tipo de alta). */
+  readonly vista = signal<TipoContactoEntidad>('Inmobiliaria');
+  readonly nuevoNombre = signal('');
+
+  readonly esInmo = computed(() => this.vista() === 'Inmobiliaria');
+
+  /** Contactos de la vista activa. */
+  readonly contactos = computed(() => (this.esInmo() ? this.inmobiliarias() : this.financieras()));
+
+  /** Crea el contacto escrito con el tipo de la vista activa. */
+  agregar(): void {
+    if (this.store.crearContacto(this.nuevoNombre(), this.vista())) {
+      this.nuevoNombre.set('');
+    }
   }
 
-  num(ev: Event): number {
-    const n = Number((ev.target as HTMLInputElement).value);
-    return Number.isFinite(n) ? n : 0;
-  }
-  marcado(ev: Event): boolean {
-    return (ev.target as HTMLInputElement).checked;
-  }
   valor(ev: Event): string {
-    return (ev.target as HTMLInputElement | HTMLTextAreaElement).value;
+    return (ev.target as HTMLInputElement).value;
   }
 }

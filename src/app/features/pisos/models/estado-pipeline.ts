@@ -1,7 +1,8 @@
 /**
- * Pipeline de estados de un piso (orden cronológico del proceso de búsqueda).
+ * Pipeline de estados de un piso.
  *
- *   Interesado → Contactado → Agendado → Visitado → Favorito
+ * - FLUJO lineal (avance cronológico): Interesado → Contactado → Agendado → Visitado
+ * - LATERALES (no son fase del flujo, son marcadores): Favorito, Pendiente condiciones
  *
  * "Descartar" no es un estado: es un borrado definitivo (con confirmación).
  */
@@ -10,7 +11,8 @@ export type EstadoPipeline =
   | 'Contactado'
   | 'Agendado'
   | 'Visitado'
-  | 'Favorito';
+  | 'Favorito'
+  | 'Pendiente condiciones';
 
 /** Metadatos de presentación de cada estado del pipeline. */
 export interface ConfigEstado {
@@ -19,19 +21,36 @@ export interface ConfigEstado {
   readonly color: string;
   /** Significado corto para mostrar en la interfaz. */
   readonly significado: string;
+  /** `true` si es una fase del flujo lineal; `false` si es un estado lateral. */
+  readonly flujo: boolean;
+  /** Icono para los estados laterales (Favorito / Pendiente condiciones). */
+  readonly icono?: string;
 }
 
 /**
- * Configuración de los estados EN ORDEN cronológico.
+ * Configuración de los estados.
  * Es la fuente de verdad para colores, selectores y leyendas.
  */
 export const ESTADOS_PIPELINE: readonly ConfigEstado[] = [
-  { valor: 'Interesado', color: '#3b82f6', significado: 'Visto en portal' },
-  { valor: 'Contactado', color: '#f97316', significado: 'Llamado/escrito, esperando' },
-  { valor: 'Agendado', color: '#eab308', significado: 'Cita fijada (requiere fecha y hora)' },
-  { valor: 'Visitado', color: '#a855f7', significado: 'Visto en persona' },
-  { valor: 'Favorito', color: '#d4af37', significado: 'Candidato serio' },
+  { valor: 'Interesado', color: '#3b82f6', significado: 'Visto en portal', flujo: true },
+  { valor: 'Contactado', color: '#f97316', significado: 'Llamado/escrito, esperando', flujo: true },
+  { valor: 'Agendado', color: '#eab308', significado: 'Cita fijada (requiere fecha y hora)', flujo: true },
+  { valor: 'Visitado', color: '#a855f7', significado: 'Visto en persona', flujo: true },
+  { valor: 'Favorito', color: '#d4af37', significado: 'Candidato serio', flujo: false, icono: '⭐' },
+  {
+    valor: 'Pendiente condiciones',
+    color: '#14b8a6',
+    significado: 'Esperando bajada de precio o cambio de condiciones',
+    flujo: false,
+    icono: '⏳',
+  },
 ] as const;
+
+/** Estados del flujo lineal (en orden). */
+export const ESTADOS_FLUJO: readonly ConfigEstado[] = ESTADOS_PIPELINE.filter((e) => e.flujo);
+
+/** Estados laterales (marcadores fuera del flujo). */
+export const ESTADOS_LATERALES: readonly ConfigEstado[] = ESTADOS_PIPELINE.filter((e) => !e.flujo);
 
 /** Acceso directo color por estado (derivado de ESTADOS_PIPELINE). */
 export const COLOR_ESTADO: Record<EstadoPipeline, string> = ESTADOS_PIPELINE.reduce(

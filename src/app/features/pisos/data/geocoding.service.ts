@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Barrio, BARRIOS } from '../models/piso.model';
+import { Distrito, DISTRITOS } from '../models/madrid';
 
 /** Resultado de la geocodificación inversa (campos best-effort). */
 export interface DireccionDetectada {
   direccion: string | null;
-  barrio: Barrio | null;
+  distrito: Distrito | null;
+  barrio: string | null;
 }
 
 /** Subconjunto de la respuesta de Nominatim que nos interesa. */
@@ -36,7 +37,7 @@ interface NominatimRespuesta {
 export class GeocodingService {
   private readonly base = 'https://nominatim.openstreetmap.org/reverse';
 
-  /** Dado un punto, intenta obtener la calle y el barrio. */
+  /** Dado un punto, intenta obtener la calle, el distrito y el barrio. */
   async reverse(lat: number, lng: number): Promise<DireccionDetectada> {
     const url =
       `${this.base}?format=jsonv2&lat=${lat}&lon=${lng}` +
@@ -44,7 +45,7 @@ export class GeocodingService {
     try {
       const resp = await fetch(url, { headers: { Accept: 'application/json' } });
       if (!resp.ok) {
-        return { direccion: null, barrio: null };
+        return { direccion: null, distrito: null, barrio: null };
       }
       const data = (await resp.json()) as NominatimRespuesta;
       const dir = data.address ?? {};
@@ -56,36 +57,49 @@ export class GeocodingService {
           : calle
         : (data.display_name?.split(',')[0]?.trim() ?? null);
 
-      return {
-        direccion: direccion || null,
-        barrio: this.detectarBarrio(dir),
-      };
+      const { distrito, barrio } = this.detectarDistritoBarrio(dir);
+      return { direccion: direccion || null, distrito, barrio };
     } catch {
       // Sin red / CORS / respuesta inesperada: degradamos a entrada manual.
-      return { direccion: null, barrio: null };
+      return { direccion: null, distrito: null, barrio: null };
     }
   }
 
-  /** Mapea los campos de Nominatim a uno de nuestros barrios conocidos. */
-  private detectarBarrio(dir: NominatimDireccion): Barrio | null {
+  /**
+   * Intenta deducir distrito y barrio a partir de los campos de Nominatim.
+   * Primero busca un barrio conocido (y de él deriva el distrito); si no,
+   * intenta casar el distrito directamente.
+   */
+  private detectarDistritoBarrio(dir: NominatimDireccion): {
+    distrito: Distrito | null;
+    barrio: string | null;
+  } {
     const candidatos = [
       dir.suburb,
       dir.neighbourhood,
       dir.quarter,
       dir.city_district,
       dir.borough,
-      dir.residential,
-      dir.road,
     ]
       .filter((c): c is string => !!c)
-      .join(' ')
-      .toLowerCase();
+      .map((c) => c.toLowerCase());
 
-    for (const b of BARRIOS) {
-      if (b !== 'Otro' && candidatos.includes(b.toLowerCase())) {
-        return b;
+    // 1) ¿Algún candidato coincide con un barrio conocido?
+    for (const d of DISTRITOS) {
+      for (const b of d.barrios) {
+        if (candidatos.some((c) => c.includes(b.toLowerCase()))) {
+          return { distrito: d.nombre, barrio: b };
+        }
       }
     }
-    return null;
+
+    // 2) Si no, ¿coincide con el nombre de un distrito?
+    for (const d of DISTRITOS) {
+      if (candidatos.some((c) => c.includes(d.nombre.toLowerCase()))) {
+        return { distrito: d.nombre, barrio: null };
+      }
+    }
+
+    return { distrito: null, barrio: null };
   }
 }
