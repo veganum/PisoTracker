@@ -85,16 +85,33 @@ export class PisosStore {
   private readonly storage = inject(STORAGE);
 
   // --- Estado base (signals) ---
-  /** Lista de pisos. Se inicializa desde persistencia o, si está vacía, del seed. */
-  readonly pisos = signal<Piso[]>(this.cargarPisos());
+  /** Lista de pisos (se rellena de forma asíncrona desde el puerto). */
+  readonly pisos = signal<Piso[]>([]);
 
   /** Contactos: inmobiliarias y financieras (estado aparte, también persistido). */
-  readonly contactos = signal<Contacto[]>(this.cargarContactos());
+  readonly contactos = signal<Contacto[]>([]);
+
+  /** `true` cuando ya se ha completado la carga inicial desde el puerto. */
+  readonly cargado = signal(false);
 
   constructor() {
-    // Persistencia automática: cada cambio de estado se guarda vía el puerto.
-    effect(() => this.storage.guardar(CLAVE_PISOS, this.pisos()));
-    effect(() => this.storage.guardar(CLAVE_INMOBILIARIAS, this.contactos()));
+    // Persistencia automática: cada cambio se guarda vía el puerto, pero SOLO
+    // después de la carga inicial (si no, escribiríamos los signals vacíos
+    // encima de los datos guardados antes de leerlos).
+    effect(() => {
+      const pisos = this.pisos();
+      if (this.cargado()) {
+        void this.storage.guardar(CLAVE_PISOS, pisos);
+      }
+    });
+    effect(() => {
+      const contactos = this.contactos();
+      if (this.cargado()) {
+        void this.storage.guardar(CLAVE_INMOBILIARIAS, contactos);
+      }
+    });
+
+    void this.inicializar();
   }
 
   // --- Derivados (computed) ---
@@ -193,17 +210,21 @@ export class PisosStore {
 
   // --- Carga inicial (privado) ---
 
-  private cargarPisos(): Piso[] {
-    const guardados = this.storage.cargar<Piso[]>(CLAVE_PISOS);
-    // Solo usamos el seed la primera vez (almacenamiento vacío o inexistente).
-    const lista = guardados && guardados.length > 0 ? guardados : PISOS_SEED;
-    return lista.map((p) => migrarPiso(p));
-  }
+  /** Lee pisos y contactos del puerto (o usa los seeds si no hay nada). */
+  private async inicializar(): Promise<void> {
+    const [pisosGuardados, contactosGuardados] = await Promise.all([
+      this.storage.cargar<Piso[]>(CLAVE_PISOS),
+      this.storage.cargar<ContactoLegacy[]>(CLAVE_INMOBILIARIAS),
+    ]);
 
-  private cargarContactos(): Contacto[] {
-    const guardados = this.storage.cargar<ContactoLegacy[]>(CLAVE_INMOBILIARIAS);
-    // Solo usamos el seed la primera vez (almacenamiento vacío o inexistente).
-    const lista = guardados && guardados.length > 0 ? guardados : CONTACTOS_SEED;
-    return lista.map((c) => migrarContacto(c));
+    const pisos = pisosGuardados && pisosGuardados.length > 0 ? pisosGuardados : PISOS_SEED;
+    this.pisos.set(pisos.map((p) => migrarPiso(p)));
+
+    const contactos =
+      contactosGuardados && contactosGuardados.length > 0 ? contactosGuardados : CONTACTOS_SEED;
+    this.contactos.set(contactos.map((c) => migrarContacto(c)));
+
+    // A partir de aquí, los effects de persistencia ya pueden escribir.
+    this.cargado.set(true);
   }
 }

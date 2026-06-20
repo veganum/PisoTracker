@@ -1,5 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { USAR_SUPABASE } from './core/config';
 import { LocalStorageAdapter } from './core/persistence/local-storage.adapter';
+import { SupabaseAdapter } from './core/persistence/supabase.adapter';
 import { STORAGE } from './core/persistence/storage.token';
 // import { MemoryStorageAdapter } from './core/persistence/memory-storage.adapter';
 
@@ -12,15 +14,16 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
 
     // ─────────────────────────────────────────────────────────────
-    //  PERSISTENCIA (puerto + adaptador). Cambiar el mecanismo es
-    //  cambiar SOLO esta línea:
+    //  PERSISTENCIA (puerto + adaptador). El mecanismo se elige con el
+    //  flag `USAR_SUPABASE` de `core/config.ts`:
     //
-    //    { provide: STORAGE, useClass: LocalStorageAdapter }   ← actual
+    //    false → LocalStorageAdapter (local, sin login)
+    //    true  → SupabaseAdapter      (nube + RLS, requiere login)
+    //
+    //  Alternativas adicionales (cambiar la clase y listo):
     //    { provide: STORAGE, useClass: MemoryStorageAdapter }  ← en memoria
-    //    { provide: STORAGE, useClass: RestApiAdapter }        ← futuro
-    //
-    //  Ni el store ni los componentes se enteran del cambio.
+    //  Ni los stores ni los componentes se enteran del cambio.
     // ─────────────────────────────────────────────────────────────
-    { provide: STORAGE, useClass: LocalStorageAdapter },
+    { provide: STORAGE, useClass: USAR_SUPABASE ? SupabaseAdapter : LocalStorageAdapter },
   ],
 };

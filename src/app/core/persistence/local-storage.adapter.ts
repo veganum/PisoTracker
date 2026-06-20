@@ -4,10 +4,11 @@ import { StoragePort } from './storage.port';
 /**
  * Adaptador de persistencia sobre `window.localStorage`.
  *
- * Serializa/deserializa a JSON con `try/catch` para tolerar entornos sin
- * `localStorage` (SSR, modo incógnito con cuota llena, JSON corrupto...).
- * Ante cualquier error se degrada de forma silenciosa en lugar de romper
- * la aplicación.
+ * Aunque `localStorage` es síncrono, implementa el puerto **asíncrono**
+ * (resuelve al instante con `Promise.resolve`) para cumplir el contrato común
+ * con los adaptadores remotos. Serializa/deserializa a JSON con `try/catch`
+ * para tolerar entornos sin `localStorage` (SSR, JSON corrupto, cuota llena...);
+ * ante cualquier error se degrada de forma silenciosa.
  */
 @Injectable()
 export class LocalStorageAdapter implements StoragePort {
@@ -16,7 +17,7 @@ export class LocalStorageAdapter implements StoragePort {
     return typeof localStorage !== 'undefined';
   }
 
-  cargar<T>(clave: string): T | null {
+  async cargar<T>(clave: string): Promise<T | null> {
     if (!this.disponible) {
       return null;
     }
@@ -29,7 +30,7 @@ export class LocalStorageAdapter implements StoragePort {
     }
   }
 
-  guardar<T>(clave: string, valor: T): void {
+  async guardar<T>(clave: string, valor: T): Promise<void> {
     if (!this.disponible) {
       return;
     }
@@ -40,7 +41,7 @@ export class LocalStorageAdapter implements StoragePort {
     }
   }
 
-  borrar(clave: string): void {
+  async borrar(clave: string): Promise<void> {
     if (!this.disponible) {
       return;
     }

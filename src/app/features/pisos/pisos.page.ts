@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { AuthService } from '../../core/auth/auth.service';
+import { USAR_SUPABASE } from '../../core/config';
 import { ThemeService } from '../../core/theme/theme.service';
 import { PisosStore } from './data/pisos.store';
 import { ToastService } from './data/toast.service';
@@ -67,6 +69,16 @@ interface ConfigPestana {
           >
             {{ theme.oscuro() ? '☀️' : '🌙' }}
           </button>
+          @if (mostrarLogout) {
+            <button
+              type="button"
+              (click)="auth.salir()"
+              aria-label="Cerrar sesión"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-lg ring-1 ring-border transition active:scale-90"
+            >
+              🚪
+            </button>
+          }
         </div>
       </header>
 
@@ -176,6 +188,10 @@ export class PisosPage {
   protected readonly store = inject(PisosStore);
   protected readonly toast = inject(ToastService);
   protected readonly theme = inject(ThemeService);
+  protected readonly auth = inject(AuthService);
+
+  /** Muestra el botón de cerrar sesión solo cuando hay login (Supabase). */
+  protected readonly mostrarLogout = USAR_SUPABASE;
 
   /** Pestaña activa. */
   readonly tab = signal<Pestana>('mapa');

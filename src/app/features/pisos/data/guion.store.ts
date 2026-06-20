@@ -21,11 +21,21 @@ export interface ProgresoGuion {
 export class GuionStore {
   private readonly storage = inject(STORAGE);
 
-  /** Bloques del guion (cargados de persistencia o del seed si está vacío). */
-  readonly bloques = signal<BloqueGuion[]>(this.cargar());
+  /** Bloques del guion (se rellenan de forma asíncrona desde el puerto). */
+  readonly bloques = signal<BloqueGuion[]>([]);
+
+  /** `true` cuando ya se ha completado la carga inicial. */
+  readonly cargado = signal(false);
 
   constructor() {
-    effect(() => this.storage.guardar(CLAVE_GUION, this.bloques()));
+    // Persiste cada cambio, pero solo tras la carga inicial (ver PisosStore).
+    effect(() => {
+      const bloques = this.bloques();
+      if (this.cargado()) {
+        void this.storage.guardar(CLAVE_GUION, bloques);
+      }
+    });
+    void this.inicializar();
   }
 
   /** Progreso global (preguntas marcadas / total). */
@@ -100,8 +110,9 @@ export class GuionStore {
     );
   }
 
-  private cargar(): BloqueGuion[] {
-    const guardado = this.storage.cargar<BloqueGuion[]>(CLAVE_GUION);
-    return guardado && guardado.length > 0 ? guardado : GUION_SEED;
+  private async inicializar(): Promise<void> {
+    const guardado = await this.storage.cargar<BloqueGuion[]>(CLAVE_GUION);
+    this.bloques.set(guardado && guardado.length > 0 ? guardado : GUION_SEED);
+    this.cargado.set(true);
   }
 }

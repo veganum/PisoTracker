@@ -19,13 +19,14 @@ const CLAVE_TEMA = 'pisotracker.tema';
 export class ThemeService {
   private readonly storage = inject(STORAGE);
 
-  /** Preferencia elegida por el usuario (persistida). */
-  readonly preferencia = signal<PreferenciaTema>(
-    this.storage.cargar<PreferenciaTema>(CLAVE_TEMA) ?? 'auto',
-  );
+  /** Preferencia elegida por el usuario (se carga de forma asíncrona). */
+  readonly preferencia = signal<PreferenciaTema>('auto');
 
   /** Señal que refleja si el SISTEMA está en oscuro (se sincroniza con matchMedia). */
   private readonly sistemaOscuro = signal<boolean>(this.consultarSistema());
+
+  /** `true` cuando ya se ha leído la preferencia guardada. */
+  private readonly cargado = signal(false);
 
   /** Tema efectivo (lo que realmente se ve). */
   readonly oscuro = computed(() =>
@@ -39,14 +40,27 @@ export class ThemeService {
       mq.addEventListener('change', (e) => this.sistemaOscuro.set(e.matches));
     }
 
-    // Aplica la clase .dark y persiste la preferencia ante cualquier cambio.
+    // Aplica la clase .dark SIEMPRE; persiste la preferencia solo tras la carga
+    // inicial (si no, escribiríamos 'auto' encima de la preferencia guardada).
     effect(() => {
       const oscuro = this.oscuro();
       if (typeof document !== 'undefined') {
         document.documentElement.classList.toggle('dark', oscuro);
       }
-      this.storage.guardar(CLAVE_TEMA, this.preferencia());
+      if (this.cargado()) {
+        void this.storage.guardar(CLAVE_TEMA, this.preferencia());
+      }
     });
+
+    void this.inicializar();
+  }
+
+  private async inicializar(): Promise<void> {
+    const pref = await this.storage.cargar<PreferenciaTema>(CLAVE_TEMA);
+    if (pref) {
+      this.preferencia.set(pref);
+    }
+    this.cargado.set(true);
   }
 
   /** Alterna entre claro y oscuro (deja de seguir al sistema). */
