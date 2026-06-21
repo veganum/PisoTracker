@@ -1,5 +1,6 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { STORAGE } from '../../../core/persistence/storage.token';
+import { RealtimeService } from '../../../core/supabase/realtime.service';
 import { Contacto, contactoVacio, TipoContactoEntidad } from '../models/contacto.model';
 import { Distrito, DISTRITOS_NOMBRES } from '../models/madrid';
 import { Piso } from '../models/piso.model';
@@ -102,6 +103,7 @@ const CLAVE_INMOBILIARIAS = 'pisotracker.inmobiliarias';
 export class PisosStore {
   private readonly storage = inject(STORAGE);
   private readonly sync = inject(SyncStatusService);
+  private readonly realtime = inject(RealtimeService);
 
   // --- Estado base (signals) ---
   /** Lista de pisos (se rellena de forma asíncrona desde el puerto). */
@@ -120,13 +122,30 @@ export class PisosStore {
     effect(() => {
       const pisos = this.pisos();
       if (this.cargado()) {
-        void this.sync.ejecutar(() => this.storage.guardar(CLAVE_PISOS, pisos));
+        void this.sync.guardar(CLAVE_PISOS, pisos);
       }
     });
     effect(() => {
       const contactos = this.contactos();
       if (this.cargado()) {
-        void this.sync.ejecutar(() => this.storage.guardar(CLAVE_INMOBILIARIAS, contactos));
+        void this.sync.guardar(CLAVE_INMOBILIARIAS, contactos);
+      }
+    });
+
+    // Sincronización en vivo: si otro dispositivo cambia los datos, refrescamos
+    // (solo si el valor remoto difiere del local, para no entrar en bucle).
+    this.realtime.escuchar(CLAVE_PISOS, (valor) => {
+      if (!this.cargado()) return;
+      const remoto = ((valor as Piso[]) ?? []).map((p) => migrarPiso(p));
+      if (JSON.stringify(remoto) !== JSON.stringify(this.pisos())) {
+        this.pisos.set(remoto);
+      }
+    });
+    this.realtime.escuchar(CLAVE_INMOBILIARIAS, (valor) => {
+      if (!this.cargado()) return;
+      const remoto = ((valor as ContactoLegacy[]) ?? []).map((c) => migrarContacto(c));
+      if (JSON.stringify(remoto) !== JSON.stringify(this.contactos())) {
+        this.contactos.set(remoto);
       }
     });
 

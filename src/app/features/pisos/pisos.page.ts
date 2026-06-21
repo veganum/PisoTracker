@@ -94,6 +94,8 @@ interface ConfigPestana {
         <div class="flex items-center gap-2">
           @if (sync.estado() === 'guardando') {
             <span class="text-xs text-muted" title="Guardando…">⏳</span>
+          } @else if (sync.estado() === 'pendiente') {
+            <span class="text-xs text-warning" title="Cambios pendientes de sincronizar">☁︎</span>
           } @else if (sync.estado() === 'error') {
             <span class="text-xs text-danger" title="Error al sincronizar">⚠️</span>
           }
@@ -231,7 +233,7 @@ interface ConfigPestana {
     <!-- Toast de feedback -->
     @if (toast.mensaje(); as msg) {
       <div
-        class="animar-toast fixed bottom-24 left-1/2 z-[2200] flex -translate-x-1/2 items-center gap-2 rounded-full bg-text px-5 py-2.5 text-sm font-medium text-bg shadow-lg"
+        class="animar-toast fixed bottom-24 left-1/2 z-[2200] flex -translate-x-1/2 items-center gap-2 rounded-full bg-text px-5 py-2.5 text-sm font-medium text-bg shadow-lg lg:bottom-6 lg:left-auto lg:right-6 lg:translate-x-0"
       >
         ✓ {{ msg }}
       </div>

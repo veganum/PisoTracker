@@ -1,5 +1,6 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { STORAGE } from '../../../core/persistence/storage.token';
+import { RealtimeService } from '../../../core/supabase/realtime.service';
 import { BloqueGuion } from '../models/guion.model';
 import { GUION_SEED } from './guion.seed';
 import { SyncStatusService } from './sync-status.service';
@@ -22,6 +23,7 @@ export interface ProgresoGuion {
 export class GuionStore {
   private readonly storage = inject(STORAGE);
   private readonly sync = inject(SyncStatusService);
+  private readonly realtime = inject(RealtimeService);
 
   /** Bloques del guion (se rellenan de forma asíncrona desde el puerto). */
   readonly bloques = signal<BloqueGuion[]>([]);
@@ -34,9 +36,19 @@ export class GuionStore {
     effect(() => {
       const bloques = this.bloques();
       if (this.cargado()) {
-        void this.sync.ejecutar(() => this.storage.guardar(CLAVE_GUION, bloques));
+        void this.sync.guardar(CLAVE_GUION, bloques);
       }
     });
+
+    // Sincronización en vivo desde otros dispositivos.
+    this.realtime.escuchar(CLAVE_GUION, (valor) => {
+      if (!this.cargado()) return;
+      const remoto = (valor as BloqueGuion[]) ?? [];
+      if (JSON.stringify(remoto) !== JSON.stringify(this.bloques())) {
+        this.bloques.set(remoto);
+      }
+    });
+
     void this.inicializar();
   }
 
