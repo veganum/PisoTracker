@@ -18,6 +18,7 @@ import {
   ESTADOS_PIPELINE,
   EstadoPipeline,
 } from '../../models/estado-pipeline';
+import { FocusTrap } from '../../../../shared/a11y/focus-trap';
 import { Icono } from '../../../../shared/icono/icono';
 import { barriosDe, Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
 import {
@@ -44,7 +45,7 @@ import {
 @Component({
   selector: 'app-piso-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, Icono],
+  imports: [DecimalPipe, Icono, FocusTrap],
   host: { '(document:keydown.escape)': 'cerrar.emit()' },
   template: `
     <div
@@ -54,6 +55,8 @@ import {
       <div
         class="animar-sheet mt-auto flex max-h-[94vh] flex-col rounded-t-3xl bg-bg shadow-2xl sm:m-auto sm:max-w-lg sm:rounded-3xl"
         (click)="$event.stopPropagation()"
+        appFocusTrap
+        tabindex="-1"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="esEditar() ? 'Editar piso' : 'Nuevo piso'"
@@ -611,16 +614,12 @@ export class PisoForm implements OnInit {
   readonly citaRequerida = computed(() => this.estado() === 'Agendado');
   readonly citaValida = computed(() => !this.citaRequerida() || this.fechaCita().trim().length > 0);
   readonly esInmobiliaria = computed(() => this.tipoContacto() === 'Inmobiliaria');
+  // Solo bloquean el guardado los campos REALMENTE obligatorios (dirección,
+  // distrito y, si está Agendado, la cita). Precio/metros/hab/baños/URL se
+  // marcan como aviso suave pero NO impiden guardar (p. ej. un piso recién
+  // visto del que aún no sabes todos los datos, o pisos antiguos con 0).
   readonly formValido = computed(
-    () =>
-      this.direccionValida() &&
-      this.distritoValido() &&
-      this.precioValido() &&
-      this.metrosValido() &&
-      this.habitacionesValido() &&
-      this.banosValido() &&
-      this.urlValida() &&
-      this.citaValida(),
+    () => this.direccionValida() && this.distritoValido() && this.citaValida(),
   );
   /** Significado del estado seleccionado (texto de ayuda). */
   readonly significadoEstado = computed(
