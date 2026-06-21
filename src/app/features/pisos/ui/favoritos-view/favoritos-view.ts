@@ -39,7 +39,8 @@ import { PisoCard } from '../piso-card/piso-card';
               @for (factor of desglose(fav.piso); track factor.etiqueta) {
                 <span
                   class="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium ring-1 ring-border"
-                  [style.color]="factor.puntos > 0 ? '#16a34a' : '#dc2626'"
+                  [class.text-success]="factor.puntos > 0"
+                  [class.text-danger]="factor.puntos < 0"
                 >
                   {{ factor.etiqueta }} {{ factor.puntos > 0 ? '+' : '' }}{{ factor.puntos }}
                 </span>

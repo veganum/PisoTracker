@@ -18,6 +18,7 @@ import {
   ESTADOS_PIPELINE,
   EstadoPipeline,
 } from '../../models/estado-pipeline';
+import { Icono } from '../../../../shared/icono/icono';
 import { barriosDe, Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
 import {
   ESTADOS_PISO,
@@ -43,7 +44,7 @@ import {
 @Component({
   selector: 'app-piso-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Icono],
   host: { '(document:keydown.escape)': 'cerrar.emit()' },
   template: `
     <div
@@ -71,9 +72,9 @@ import {
             type="button"
             (click)="cerrar.emit()"
             aria-label="Cerrar"
-            class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-xl text-muted ring-1 ring-border transition active:scale-95"
+            class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-muted ring-1 ring-border transition active:scale-95"
           >
-            ×
+            <app-icono nombre="x" [tam]="18" />
           </button>
         </header>
 

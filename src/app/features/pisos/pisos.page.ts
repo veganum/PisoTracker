@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { AuthService } from '../../core/auth/auth.service';
 import { USAR_SUPABASE } from '../../core/config';
 import { ThemeService } from '../../core/theme/theme.service';
+import { Icono } from '../../shared/icono/icono';
 import { PisosStore } from './data/pisos.store';
 import { SyncStatusService } from './data/sync-status.service';
 import { ToastService } from './data/toast.service';
@@ -39,6 +40,7 @@ interface ConfigPestana {
     GuionView,
     PisoForm,
     ConfirmDialog,
+    Icono,
   ],
   template: `
     <div class="mx-auto flex h-[100dvh] max-w-lg flex-col bg-bg lg:max-w-6xl">
@@ -65,7 +67,7 @@ interface ConfigPestana {
             <span class="text-xs text-danger" title="Error al sincronizar">⚠️</span>
           }
           <span
-            class="inline-flex items-center gap-1 rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold text-text"
+            class="inline-flex h-9 items-center gap-1 rounded-full bg-surface-2 px-3 text-sm font-semibold text-text"
             [attr.title]="store.pisos().length + ' pisos guardados'"
             aria-label="Pisos guardados"
           >
@@ -75,18 +77,18 @@ interface ConfigPestana {
             type="button"
             (click)="theme.alternar()"
             [attr.aria-label]="theme.oscuro() ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
-            class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-lg ring-1 ring-border transition active:scale-90"
+            class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-muted ring-1 ring-border transition active:scale-90"
           >
-            {{ theme.oscuro() ? '☀️' : '🌙' }}
+            <app-icono [nombre]="theme.oscuro() ? 'sun' : 'moon'" [tam]="18" />
           </button>
           @if (mostrarLogout) {
             <button
               type="button"
               (click)="auth.salir()"
               aria-label="Cerrar sesión"
-              class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-lg ring-1 ring-border transition active:scale-90"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-muted ring-1 ring-border transition active:scale-90"
             >
-              🚪
+              <app-icono nombre="log-out" [tam]="18" />
             </button>
           }
         </div>

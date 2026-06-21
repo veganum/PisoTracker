@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { Icono } from '../../../../shared/icono/icono';
 import { GuionStore } from '../../data/guion.store';
 import { BloqueGuion } from '../../models/guion.model';
 
@@ -11,6 +12,7 @@ import { BloqueGuion } from '../../models/guion.model';
   selector: 'app-guion-bloque',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
+  imports: [Icono],
   template: `
     <article class="tarjeta overflow-hidden">
       <!-- Cabecera colapsable -->
@@ -26,7 +28,9 @@ import { BloqueGuion } from '../../models/guion.model';
           <span class="block truncate font-bold text-text">{{ bloque().titulo }}</span>
           <span class="text-xs text-muted">{{ hechas() }}/{{ total() }} preguntas</span>
         </span>
-        <span class="text-muted transition" [class.rotate-180]="expandido()">▾</span>
+        <span class="text-muted transition" [class.rotate-180]="expandido()">
+          <app-icono nombre="chevron-down" [tam]="18" />
+        </span>
       </button>
 
       @if (expandido()) {
@@ -47,9 +51,10 @@ import { BloqueGuion } from '../../models/guion.model';
                   <button
                     type="button"
                     (click)="guardarEdicion()"
-                    class="shrink-0 rounded-xl bg-primary-btn px-3 py-2 text-sm font-semibold text-on-primary"
+                    aria-label="Guardar"
+                    class="flex shrink-0 items-center justify-center rounded-xl bg-primary-btn px-3 py-2 text-on-primary"
                   >
-                    OK
+                    <app-icono nombre="check" [tam]="18" />
                   </button>
                 </div>
               } @else {
@@ -73,17 +78,17 @@ import { BloqueGuion } from '../../models/guion.model';
                     type="button"
                     (click)="empezarEdicion(pregunta.id, pregunta.texto)"
                     aria-label="Editar pregunta"
-                    class="shrink-0 rounded-lg px-1.5 py-1 text-sm text-muted active:scale-90"
+                    class="flex shrink-0 items-center rounded-lg p-1.5 text-muted transition hover:text-text active:scale-90"
                   >
-                    ✏️
+                    <app-icono nombre="pencil" [tam]="16" />
                   </button>
                   <button
                     type="button"
                     (click)="store.borrarPregunta(pregunta.id)"
                     aria-label="Borrar pregunta"
-                    class="shrink-0 rounded-lg px-1.5 py-1 text-sm text-muted active:scale-90"
+                    class="flex shrink-0 items-center rounded-lg p-1.5 text-muted transition hover:text-danger active:scale-90"
                   >
-                    🗑️
+                    <app-icono nombre="trash" [tam]="16" />
                   </button>
                 </div>
               }
@@ -104,9 +109,10 @@ import { BloqueGuion } from '../../models/guion.model';
               type="button"
               (click)="agregar()"
               [disabled]="!nuevaPregunta().trim()"
-              class="shrink-0 rounded-xl bg-primary-btn px-3.5 py-2 text-lg font-semibold text-on-primary disabled:opacity-40"
+              aria-label="Añadir pregunta"
+              class="flex shrink-0 items-center justify-center rounded-xl bg-primary-btn p-2.5 text-on-primary disabled:opacity-40"
             >
-              +
+              <app-icono nombre="plus" [tam]="18" />
             </button>
           </div>
         </div>

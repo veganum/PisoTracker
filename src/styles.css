@@ -24,6 +24,8 @@
   --color-primary-btn: var(--primary-btn);
   --color-on-primary: var(--on-primary);
   --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-star: var(--star);
 }
 
@@ -35,11 +37,13 @@
   --text: #1c1c1e;
   --muted: #6e6e73;
   --border: #e5e5ea;
-  --primary: #6366f1; /* índigo (acento de texto/iconos/indicadores) */
-  --primary-btn: #6366f1; /* índigo sólido para botones primarios */
+  --primary: #4f46e5; /* índigo-600: acento con contraste AA sobre claro */
+  --primary-btn: #4f46e5; /* índigo sólido para botones primarios */
   --on-primary: #ffffff;
-  --danger: #ef4444;
-  --star: #d4af37; /* dorado de "Favorito" */
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
+  --star: #c79a1e; /* dorado de "Favorito" (más contraste en claro) */
   color-scheme: light;
 }
 
@@ -54,7 +58,9 @@
   --primary: #a5b4fc; /* índigo claro para que resalte sobre oscuro */
   --primary-btn: #6366f1;
   --on-primary: #ffffff;
-  --danger: #ff5a52;
+  --danger: #ff6b63;
+  --success: #4ade80;
+  --warning: #fbbf24;
   --star: #e3c04b;
   color-scheme: dark;
 }
@@ -69,6 +75,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family:
+    'Inter',
     system-ui,
     -apple-system,
     'Segoe UI',
@@ -78,6 +85,11 @@ body {
   transition:
     background-color 0.25s ease,
     color 0.25s ease;
+}
+
+/* Números tabulares para que precios y cifras no "bailen" al alinearse. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Foco visible accesible y consistente en controles interactivos */

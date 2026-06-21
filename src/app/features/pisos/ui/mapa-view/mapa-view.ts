@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { Icono } from '../../../../shared/icono/icono';
 import { PisosStore } from '../../data/pisos.store';
 import { colorEstado, ESTADOS_PIPELINE } from '../../models/estado-pipeline';
 import { Piso } from '../../models/piso.model';
@@ -35,6 +36,7 @@ const ZOOM_INICIAL = 12;
   selector: 'app-mapa-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block h-full' },
+  imports: [Icono],
   template: `
     <div class="relative h-full w-full">
       <div #mapa class="h-full w-full"></div>
@@ -44,9 +46,9 @@ const ZOOM_INICIAL = 12;
         type="button"
         (click)="centrarEnTodos()"
         aria-label="Centrar el mapa en todos los pisos"
-        class="absolute right-3 top-3 z-[1000] flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-lg shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
+        class="absolute right-3 top-3 z-[1000] flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-text shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
       >
-        🎯
+        <app-icono nombre="crosshair" [tam]="20" />
       </button>
 
       <!-- Leyenda de colores del pipeline (captura el clic: no añade vivienda) -->

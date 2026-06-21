@@ -1,5 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Icono } from '../../../../shared/icono/icono';
 import { colorEstado } from '../../models/estado-pipeline';
 import { Piso } from '../../models/piso.model';
 
@@ -11,7 +12,7 @@ import { Piso } from '../../models/piso.model';
   selector: 'app-piso-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
-  imports: [DecimalPipe, DatePipe],
+  imports: [DecimalPipe, DatePipe, Icono],
   template: `
     <article class="tarjeta overflow-hidden">
       <!-- Cabecera: barrio + estado bien visibles -->
@@ -45,7 +46,7 @@ import { Piso } from '../../models/piso.model';
 
         <!-- Precio + puntuación -->
         <div class="mt-2.5 flex items-baseline justify-between">
-          <p class="text-2xl font-bold tracking-tight text-text">
+          <p class="tabular text-2xl font-bold tracking-tight text-text">
             {{ piso().precio | number: '1.0-0' }} €
           </p>
           @if (puntos() !== null) {
@@ -126,17 +127,17 @@ import { Piso } from '../../models/piso.model';
           <button
             type="button"
             (click)="editar.emit(piso())"
-            class="btn-primario flex-1 py-2.5 text-sm"
+            class="btn-primario flex flex-1 items-center justify-center gap-1.5 py-2.5 text-sm"
           >
-            Editar
+            <app-icono nombre="pencil" [tam]="16" /> Editar
           </button>
           <button
             type="button"
             (click)="borrar.emit(piso())"
             aria-label="Descartar piso"
-            class="rounded-2xl bg-danger/10 px-3 py-2.5 text-base text-danger transition active:scale-[0.96]"
+            class="flex items-center justify-center rounded-2xl bg-danger/10 px-3 py-2.5 text-danger transition active:scale-[0.96]"
           >
-            🗑️
+            <app-icono nombre="trash" [tam]="18" />
           </button>
         </div>
       </div>

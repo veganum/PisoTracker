@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { Icono } from '../../../../shared/icono/icono';
 import { PisosStore } from '../../data/pisos.store';
 import { ToastService } from '../../data/toast.service';
 import { Contacto, SUBTIPOS_FINANCIERA, UnidadHonorarios } from '../../models/contacto.model';
@@ -13,6 +14,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
   selector: 'app-contacto-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
+  imports: [Icono],
   template: `
     <article class="tarjeta space-y-3 p-4">
       <!-- Cabecera: tipo + nombre + borrar -->
@@ -48,9 +50,9 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
             type="button"
             (click)="confirmandoBorrado.set(true)"
             aria-label="Borrar contacto"
-            class="rounded-lg bg-danger/10 px-2.5 py-1.5 text-sm text-danger active:scale-95"
+            class="flex items-center justify-center rounded-lg bg-danger/10 px-2.5 py-1.5 text-danger active:scale-95"
           >
-            🗑️
+            <app-icono nombre="trash" [tam]="16" />
           </button>
         }
       </div>
@@ -96,8 +98,8 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
               class="campo py-2.5"
             />
             @if (contacto().telefono.trim()) {
-              <button type="button" (click)="copiar(contacto().telefono)" aria-label="Copiar teléfono" class="btn-suave shrink-0 px-3 py-2.5">📋</button>
-              <a [href]="'tel:' + contacto().telefono" aria-label="Llamar" class="btn-suave shrink-0 px-3 py-2.5 text-center">📞</a>
+              <button type="button" (click)="copiar(contacto().telefono)" aria-label="Copiar teléfono" class="btn-suave flex shrink-0 items-center px-3 py-2.5"><app-icono nombre="copy" [tam]="16" /></button>
+              <a [href]="'tel:' + contacto().telefono" aria-label="Llamar" class="btn-suave flex shrink-0 items-center px-3 py-2.5"><app-icono nombre="phone" [tam]="16" /></a>
             }
           </div>
         </div>
@@ -112,8 +114,8 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
               class="campo py-2.5"
             />
             @if (contacto().email.trim()) {
-              <button type="button" (click)="copiar(contacto().email)" aria-label="Copiar email" class="btn-suave shrink-0 px-3 py-2.5">📋</button>
-              <a [href]="'mailto:' + contacto().email" aria-label="Enviar email" class="btn-suave shrink-0 px-3 py-2.5 text-center">✉️</a>
+              <button type="button" (click)="copiar(contacto().email)" aria-label="Copiar email" class="btn-suave flex shrink-0 items-center px-3 py-2.5"><app-icono nombre="copy" [tam]="16" /></button>
+              <a [href]="'mailto:' + contacto().email" aria-label="Enviar email" class="btn-suave flex shrink-0 items-center px-3 py-2.5"><app-icono nombre="mail" [tam]="16" /></a>
             }
           </div>
         </div>
@@ -130,7 +132,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
             class="campo py-2.5"
           />
           @if (contacto().url.trim()) {
-            <a [href]="contacto().url" target="_blank" rel="noopener" class="btn-suave shrink-0 px-3 py-2.5 text-center">🔗</a>
+            <a [href]="contacto().url" target="_blank" rel="noopener" class="btn-suave flex shrink-0 items-center px-3 py-2.5"><app-icono nombre="link" [tam]="16" /></a>
           }
         </div>
       </label>

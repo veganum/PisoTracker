@@ -4,6 +4,7 @@ import { ESTADOS_PIPELINE, EstadoPipeline } from '../../models/estado-pipeline';
 import { barriosDe, Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
 import { ESTADOS_PISO, EstadoPiso, Piso, TIPOS_CONTACTO, TipoContacto } from '../../models/piso.model';
 import { puntuacionPiso } from '../../data/puntuacion.util';
+import { Icono } from '../../../../shared/icono/icono';
 import { PisoCard } from '../piso-card/piso-card';
 
 /**
@@ -14,17 +15,22 @@ import { PisoCard } from '../piso-card/piso-card';
 @Component({
   selector: 'app-lista-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PisoCard],
+  imports: [PisoCard, Icono],
   template: `
     <div class="space-y-3">
       <!-- Buscador -->
-      <input
-        type="search"
-        [value]="busqueda()"
-        (input)="busqueda.set(valor($event))"
-        placeholder="🔍 Buscar por dirección, barrio, inmobiliaria, notas…"
-        class="campo py-2.5 text-sm"
-      />
+      <div class="relative">
+        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+          <app-icono nombre="search" [tam]="16" />
+        </span>
+        <input
+          type="search"
+          [value]="busqueda()"
+          (input)="busqueda.set(valor($event))"
+          placeholder="Buscar por dirección, barrio, inmobiliaria, notas…"
+          class="campo py-2.5 pl-9 text-sm"
+        />
+      </div>
 
       <!-- Filtros -->
       <div class="grid grid-cols-2 gap-2">
