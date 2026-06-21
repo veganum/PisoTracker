@@ -88,6 +88,24 @@ import { Piso } from '../../models/piso.model';
           }
         </div>
 
+        <!-- Avisos de riesgo / coste -->
+        @if (piso().ocupado || piso().nudaPropiedad || piso().derramas.trim() || piso().observacionesLegales.trim()) {
+          <div class="mt-2.5 flex flex-wrap gap-1.5 text-xs">
+            @if (piso().ocupado) {
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">⚠️ Ocupado</span>
+            }
+            @if (piso().nudaPropiedad) {
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">⚠️ Nuda propiedad</span>
+            }
+            @if (piso().derramas.trim()) {
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">💸 Derrama</span>
+            }
+            @if (piso().observacionesLegales.trim()) {
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">⚖️ Legal</span>
+            }
+          </div>
+        }
+
         <!-- Notas -->
         @if (piso().notas.trim()) {
           <p class="mt-2.5 line-clamp-2 text-sm text-muted">{{ piso().notas }}</p>

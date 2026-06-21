@@ -3,6 +3,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { USAR_SUPABASE } from '../../core/config';
 import { ThemeService } from '../../core/theme/theme.service';
 import { PisosStore } from './data/pisos.store';
+import { SyncStatusService } from './data/sync-status.service';
 import { ToastService } from './data/toast.service';
 import { Piso } from './models/piso.model';
 import { ConfirmDialog } from './ui/confirm-dialog/confirm-dialog';
@@ -40,7 +41,7 @@ interface ConfigPestana {
     ConfirmDialog,
   ],
   template: `
-    <div class="mx-auto flex h-[100dvh] max-w-lg flex-col bg-bg">
+    <div class="mx-auto flex h-[100dvh] max-w-lg flex-col bg-bg lg:max-w-6xl">
       <!-- Cabecera -->
       <header
         class="z-20 flex items-center justify-between gap-2 border-b border-border bg-surface/80 px-4 py-3 backdrop-blur-lg"
@@ -58,6 +59,11 @@ interface ConfigPestana {
         </div>
 
         <div class="flex items-center gap-2">
+          @if (sync.estado() === 'guardando') {
+            <span class="text-xs text-muted" title="Guardando…">⏳</span>
+          } @else if (sync.estado() === 'error') {
+            <span class="text-xs text-danger" title="Error al sincronizar">⚠️</span>
+          }
           <span class="rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold text-text">
             {{ store.pisos().length }}
           </span>
@@ -84,6 +90,12 @@ interface ConfigPestana {
 
       <!-- Contenido -->
       <main class="relative min-h-0 flex-1">
+        @if (!store.cargado()) {
+          <div class="flex h-full flex-col items-center justify-center gap-3 text-muted">
+            <span class="text-3xl animate-pulse">🏠</span>
+            <span class="text-sm">Cargando tus pisos…</span>
+          </div>
+        } @else {
         @switch (tab()) {
           @case ('mapa') {
             <app-mapa-view
@@ -129,10 +141,14 @@ interface ConfigPestana {
           </svg>
         </button>
         }
+        }
       </main>
 
       <!-- Pestañas inferiores fijas -->
-      <nav class="z-20 grid grid-cols-5 border-t border-border bg-surface/90 px-1 pb-1 pt-1.5 backdrop-blur-lg">
+      <nav
+        class="z-20 grid grid-cols-5 border-t border-border bg-surface/90 px-1 pt-1.5 backdrop-blur-lg"
+        style="padding-bottom: calc(0.25rem + env(safe-area-inset-bottom))"
+      >
         @for (p of pestanas; track p.id) {
           <button
             type="button"
@@ -189,6 +205,7 @@ export class PisosPage {
   protected readonly toast = inject(ToastService);
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
+  protected readonly sync = inject(SyncStatusService);
 
   /** Muestra el botón de cerrar sesión solo cuando hay login (Supabase). */
   protected readonly mostrarLogout = USAR_SUPABASE;

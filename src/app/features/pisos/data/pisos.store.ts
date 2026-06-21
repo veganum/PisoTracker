@@ -6,6 +6,7 @@ import { Piso } from '../models/piso.model';
 import { CONTACTOS_SEED } from './contactos.seed';
 import { PISOS_SEED } from './pisos.seed';
 import { calcularRango, puntuacionPiso } from './puntuacion.util';
+import { SyncStatusService } from './sync-status.service';
 
 /** Forma antigua del estado de inmobiliaria (antes de unificar en Contacto). */
 type ContactoLegacy = Partial<Contacto> & {
@@ -50,18 +51,35 @@ const MAPA_LEGACY: Record<string, { distrito: Distrito; barrio: string }> = {
   Arganzuela: { distrito: 'Arganzuela', barrio: '' },
 };
 
+/** Valores por defecto de los campos añadidos después (costes/riesgos/etc.). */
+const CAMPOS_NUEVOS_DEFECTO = {
+  gastosComunidad: 0,
+  ibiAnual: 0,
+  derramas: '',
+  reformaEstimada: 0,
+  minutosMetro: 0,
+  minutosBus: 0,
+  ocupado: false,
+  nudaPropiedad: false,
+  observacionesLegales: '',
+  certificadoEnergetico: '',
+  fechaPublicacion: '',
+  fechaUltimaRevision: '',
+} satisfies Partial<Piso>;
+
 /**
- * Normaliza un piso al modelo actual (distrito + barrio). Tolera datos
- * guardados con el formato antiguo (solo `barrio`, sin `distrito`).
+ * Normaliza un piso al modelo actual: separa distrito/barrio del formato
+ * antiguo y rellena con valores por defecto los campos añadidos después.
  */
 function migrarPiso(p: Piso): Piso {
   const raw = p as PisoLegacy;
-  // Si ya trae un distrito válido, solo aseguramos que barrio sea string.
+  // Los defaults van primero: si `p` ya trae el campo, prevalece el suyo.
+  const base = { ...CAMPOS_NUEVOS_DEFECTO, ...p };
   if (DISTRITOS_NOMBRES.includes(raw.distrito as Distrito)) {
-    return { ...p, barrio: raw.barrio ?? '' };
+    return { ...base, barrio: raw.barrio ?? '' };
   }
   const legacy = MAPA_LEGACY[raw.barrio ?? ''] ?? { distrito: 'Centro' as Distrito, barrio: '' };
-  return { ...p, distrito: legacy.distrito, barrio: legacy.barrio };
+  return { ...base, distrito: legacy.distrito, barrio: legacy.barrio };
 }
 
 /** Un favorito con su puntuación ya calculada (para la vista de favoritos). */
@@ -83,6 +101,7 @@ const CLAVE_INMOBILIARIAS = 'pisotracker.inmobiliarias';
 @Injectable({ providedIn: 'root' })
 export class PisosStore {
   private readonly storage = inject(STORAGE);
+  private readonly sync = inject(SyncStatusService);
 
   // --- Estado base (signals) ---
   /** Lista de pisos (se rellena de forma asíncrona desde el puerto). */
@@ -101,13 +120,13 @@ export class PisosStore {
     effect(() => {
       const pisos = this.pisos();
       if (this.cargado()) {
-        void this.storage.guardar(CLAVE_PISOS, pisos);
+        void this.sync.ejecutar(() => this.storage.guardar(CLAVE_PISOS, pisos));
       }
     });
     effect(() => {
       const contactos = this.contactos();
       if (this.cargado()) {
-        void this.storage.guardar(CLAVE_INMOBILIARIAS, contactos);
+        void this.sync.ejecutar(() => this.storage.guardar(CLAVE_INMOBILIARIAS, contactos));
       }
     });
 
@@ -121,10 +140,9 @@ export class PisosStore {
 
   /** Favoritos puntuados y ordenados de mayor a menor puntuación. */
   readonly favoritos = computed<FavoritoPuntuado[]>(() => {
-    const rango = this.rango();
     return this.pisos()
       .filter((p) => p.estado === 'Favorito')
-      .map((piso) => ({ piso, puntos: puntuacionPiso(piso, rango) }))
+      .map((piso) => ({ piso, puntos: puntuacionPiso(piso) }))
       .sort((a, b) => b.puntos - a.puntos);
   });
 
@@ -217,12 +235,9 @@ export class PisosStore {
       this.storage.cargar<ContactoLegacy[]>(CLAVE_INMOBILIARIAS),
     ]);
 
-    const pisos = pisosGuardados && pisosGuardados.length > 0 ? pisosGuardados : PISOS_SEED;
-    this.pisos.set(pisos.map((p) => migrarPiso(p)));
-
-    const contactos =
-      contactosGuardados && contactosGuardados.length > 0 ? contactosGuardados : CONTACTOS_SEED;
-    this.contactos.set(contactos.map((c) => migrarContacto(c)));
+    // `null` = nunca guardado → usamos el seed. `[]` = el usuario lo vació → se respeta.
+    this.pisos.set((pisosGuardados ?? PISOS_SEED).map((p) => migrarPiso(p)));
+    this.contactos.set((contactosGuardados ?? CONTACTOS_SEED).map((c) => migrarContacto(c)));
 
     // A partir de aquí, los effects de persistencia ya pueden escribir.
     this.cargado.set(true);

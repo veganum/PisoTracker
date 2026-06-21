@@ -60,6 +60,43 @@ concreta. Cambiar de mecanismo es **una sola línea** en
 No hay que tocar nada más: ni el `PisosStore` ni los componentes se enteran del
 cambio.
 
+## Persistencia en la nube con Supabase (multiusuario)
+
+La app puede sincronizar entre dispositivos usando **Supabase** (Postgres + Auth
++ RLS). Cada usuario solo ve sus datos.
+
+### 1. Crear la tabla
+
+En tu proyecto de Supabase: **SQL Editor → New query** → pega el contenido de
+[`supabase/estado.sql`](supabase/estado.sql) → **Run**. Crea la tabla `estado`
+(clave-valor por usuario, `valor jsonb`, `user_id` con `default auth.uid()`),
+activa **RLS** y añade las políticas `SELECT/INSERT/UPDATE/DELETE` con la regla
+`auth.uid() = user_id`.
+
+### 2. Crear usuarios
+
+**Authentication → Users → Add user** (marca **Auto Confirm User** para saltar el
+email de confirmación). Repite para cada persona (pensado para grupos pequeños).
+
+### 3. Activar Supabase en la app
+
+En [`src/app/core/config.ts`](src/app/core/config.ts):
+
+```typescript
+export const USAR_SUPABASE = true;          // false = localStorage (sin login)
+export const SUPABASE_CONFIG = {
+  url: 'https://<tu-proyecto>.supabase.co',
+  anonKey: '<tu-anon-key>',                  // pública por diseño; RLS protege
+};
+```
+
+> ⚠️ **Seguridad:** la `anon` key es pública y puede ir en el frontend; la
+> seguridad real la dan las **políticas RLS**. **Nunca** pongas la `service_role`
+> key en el cliente.
+
+Con `USAR_SUPABASE = true` la app muestra **login** (email + contraseña) y guarda
+todo en Supabase mediante el `SupabaseAdapter` (mismo puerto `StoragePort`).
+
 ## Estructura
 
 ```

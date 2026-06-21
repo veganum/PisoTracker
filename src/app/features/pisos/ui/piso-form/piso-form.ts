@@ -44,6 +44,7 @@ import {
   selector: 'app-piso-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DecimalPipe],
+  host: { '(document:keydown.escape)': 'cerrar.emit()' },
   template: `
     <div
       class="animar-fade fixed inset-0 z-[2000] flex flex-col bg-black/40 backdrop-blur-sm"
@@ -52,6 +53,9 @@ import {
       <div
         class="animar-sheet mt-auto flex max-h-[94vh] flex-col rounded-t-3xl bg-bg shadow-2xl sm:m-auto sm:max-w-lg sm:rounded-3xl"
         (click)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="esEditar() ? 'Editar piso' : 'Nuevo piso'"
       >
         <!-- Tirador (estética iOS) -->
         <div class="flex justify-center pt-2.5 sm:hidden">
@@ -145,11 +149,16 @@ import {
                 <span class="etiqueta">URL del anuncio</span>
                 <input
                   type="url"
+                  inputmode="url"
                   [value]="url()"
                   (input)="url.set(valor($event))"
                   placeholder="https://…"
                   class="campo"
+                  [class.border-danger]="!urlValida()"
                 />
+                @if (!urlValida()) {
+                  <span class="mt-1 block text-xs text-danger">Debe empezar por http:// o https://</span>
+                }
               </label>
             </div>
           </section>
@@ -166,46 +175,73 @@ import {
                   <input
                     type="number"
                     inputmode="numeric"
+                    min="1"
+                    step="1000"
                     [value]="precio()"
                     (input)="precio.set(num($event))"
                     class="campo"
+                    [class.border-danger]="!precioValido()"
                   />
+                  @if (!precioValido()) {
+                    <span class="mt-1 block text-xs text-danger">Mayor que 0.</span>
+                  }
                 </label>
                 <label class="block">
                   <span class="etiqueta">Metros (m²)</span>
                   <input
                     type="number"
                     inputmode="numeric"
+                    min="1"
+                    step="1"
                     [value]="metros()"
                     (input)="metros.set(num($event))"
                     class="campo"
+                    [class.border-danger]="!metrosValido()"
                   />
+                  @if (!metrosValido()) {
+                    <span class="mt-1 block text-xs text-danger">Mayor que 0.</span>
+                  }
                 </label>
                 <label class="block">
                   <span class="etiqueta">Habitaciones</span>
                   <input
                     type="number"
                     inputmode="numeric"
+                    min="1"
+                    step="1"
                     [value]="habitaciones()"
                     (input)="habitaciones.set(num($event))"
                     class="campo"
+                    [class.border-danger]="!habitacionesValido()"
                   />
+                  @if (!habitacionesValido()) {
+                    <span class="mt-1 block text-xs text-danger">Mínimo 1.</span>
+                  }
                 </label>
                 <label class="block">
                   <span class="etiqueta">Baños</span>
                   <input
                     type="number"
                     inputmode="numeric"
+                    min="1"
+                    step="1"
                     [value]="banos()"
                     (input)="banos.set(num($event))"
                     class="campo"
+                    [class.border-danger]="!banosValido()"
                   />
+                  @if (!banosValido()) {
+                    <span class="mt-1 block text-xs text-danger">Mínimo 1.</span>
+                  }
                 </label>
                 <label class="block">
                   <span class="etiqueta">Planta</span>
                   <input
                     type="number"
                     inputmode="numeric"
+                    min="-2"
+                    max="60"
+                    step="1"
                     [value]="planta()"
                     (input)="planta.set(num($event))"
                     class="campo"
@@ -318,6 +354,73 @@ import {
                   }
                 </div>
               }
+            </div>
+          </section>
+
+          <!-- ===== Costes y riesgos ===== -->
+          <section>
+            <h3 class="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-muted">
+              💶 Costes y riesgos
+            </h3>
+            <div class="tarjeta space-y-3 p-4">
+              <div class="grid grid-cols-2 gap-3">
+                <label class="block">
+                  <span class="etiqueta">Comunidad (€/mes)</span>
+                  <input type="number" inputmode="numeric" min="0" [value]="gastosComunidad()" (input)="gastosComunidad.set(num($event))" class="campo" />
+                </label>
+                <label class="block">
+                  <span class="etiqueta">IBI (€/año)</span>
+                  <input type="number" inputmode="numeric" min="0" [value]="ibiAnual()" (input)="ibiAnual.set(num($event))" class="campo" />
+                </label>
+                <label class="block">
+                  <span class="etiqueta">Reforma estimada (€)</span>
+                  <input type="number" inputmode="numeric" min="0" step="1000" [value]="reformaEstimada()" (input)="reformaEstimada.set(num($event))" class="campo" />
+                </label>
+                <label class="block">
+                  <span class="etiqueta">Cert. energético (A–G)</span>
+                  <input type="text" maxlength="1" [value]="certificadoEnergetico()" (input)="certificadoEnergetico.set(valor($event).toUpperCase())" placeholder="—" class="campo uppercase" />
+                </label>
+                <label class="block">
+                  <span class="etiqueta">Metro (min)</span>
+                  <input type="number" inputmode="numeric" min="0" [value]="minutosMetro()" (input)="minutosMetro.set(num($event))" class="campo" />
+                </label>
+                <label class="block">
+                  <span class="etiqueta">Bus (min)</span>
+                  <input type="number" inputmode="numeric" min="0" [value]="minutosBus()" (input)="minutosBus.set(num($event))" class="campo" />
+                </label>
+              </div>
+
+              <label class="block">
+                <span class="etiqueta">Derramas conocidas</span>
+                <input type="text" [value]="derramas()" (input)="derramas.set(valor($event))" placeholder="Vacío = ninguna" class="campo" />
+              </label>
+
+              <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center gap-3 rounded-2xl border border-border px-4 py-3">
+                  <input type="checkbox" [checked]="ocupado()" (change)="ocupado.set(marcado($event))" class="h-5 w-5 accent-primary-btn" />
+                  <span class="text-sm font-medium text-text">Ocupado</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-2xl border border-border px-4 py-3">
+                  <input type="checkbox" [checked]="nudaPropiedad()" (change)="nudaPropiedad.set(marcado($event))" class="h-5 w-5 accent-primary-btn" />
+                  <span class="text-sm font-medium text-text">Nuda propiedad</span>
+                </label>
+              </div>
+
+              <label class="block">
+                <span class="etiqueta">Observaciones legales</span>
+                <input type="text" [value]="observacionesLegales()" (input)="observacionesLegales.set(valor($event))" placeholder="Cargas, ocupación, urbanísticas…" class="campo" />
+              </label>
+
+              <div class="grid grid-cols-2 gap-3">
+                <label class="block">
+                  <span class="etiqueta">Publicado</span>
+                  <input type="date" [value]="fechaPublicacion()" (input)="fechaPublicacion.set(valor($event))" class="campo" />
+                </label>
+                <label class="block">
+                  <span class="etiqueta">Última revisión</span>
+                  <input type="date" [value]="fechaUltimaRevision()" (input)="fechaUltimaRevision.set(valor($event))" class="campo" />
+                </label>
+              </div>
             </div>
           </section>
 
@@ -470,6 +573,19 @@ export class PisoForm implements OnInit {
   readonly estadoPiso = signal<EstadoPiso>('Listo para entrar');
   readonly tipoContacto = signal<TipoContacto>('Particular');
   readonly inmobiliaria = signal('');
+  // Costes / transporte / riesgos / otros
+  readonly gastosComunidad = signal(0);
+  readonly ibiAnual = signal(0);
+  readonly derramas = signal('');
+  readonly reformaEstimada = signal(0);
+  readonly minutosMetro = signal(0);
+  readonly minutosBus = signal(0);
+  readonly ocupado = signal(false);
+  readonly nudaPropiedad = signal(false);
+  readonly observacionesLegales = signal('');
+  readonly certificadoEnergetico = signal('');
+  readonly fechaPublicacion = signal('');
+  readonly fechaUltimaRevision = signal('');
   readonly estado = signal<EstadoPipeline>('Interesado');
   readonly fechaCita = signal('');
   readonly notas = signal('');
@@ -483,11 +599,27 @@ export class PisoForm implements OnInit {
   readonly esEditar = computed(() => this.pisoInicial() !== null);
   readonly direccionValida = computed(() => this.direccion().trim().length > 0);
   readonly distritoValido = computed(() => this.distrito() !== '');
+  readonly precioValido = computed(() => this.precio() > 0);
+  readonly metrosValido = computed(() => this.metros() > 0);
+  readonly habitacionesValido = computed(() => this.habitaciones() >= 1);
+  readonly banosValido = computed(() => this.banos() >= 1);
+  readonly urlValida = computed(() => {
+    const u = this.url().trim();
+    return !u || /^https?:\/\/\S+$/i.test(u);
+  });
   readonly citaRequerida = computed(() => this.estado() === 'Agendado');
   readonly citaValida = computed(() => !this.citaRequerida() || this.fechaCita().trim().length > 0);
   readonly esInmobiliaria = computed(() => this.tipoContacto() === 'Inmobiliaria');
   readonly formValido = computed(
-    () => this.direccionValida() && this.distritoValido() && this.citaValida(),
+    () =>
+      this.direccionValida() &&
+      this.distritoValido() &&
+      this.precioValido() &&
+      this.metrosValido() &&
+      this.habitacionesValido() &&
+      this.banosValido() &&
+      this.urlValida() &&
+      this.citaValida(),
   );
   /** Significado del estado seleccionado (texto de ayuda). */
   readonly significadoEstado = computed(
@@ -519,6 +651,18 @@ export class PisoForm implements OnInit {
       this.estadoPiso.set(p.estadoPiso);
       this.tipoContacto.set(p.tipoContacto);
       this.inmobiliaria.set(p.inmobiliaria ?? '');
+      this.gastosComunidad.set(p.gastosComunidad);
+      this.ibiAnual.set(p.ibiAnual);
+      this.derramas.set(p.derramas);
+      this.reformaEstimada.set(p.reformaEstimada);
+      this.minutosMetro.set(p.minutosMetro);
+      this.minutosBus.set(p.minutosBus);
+      this.ocupado.set(p.ocupado);
+      this.nudaPropiedad.set(p.nudaPropiedad);
+      this.observacionesLegales.set(p.observacionesLegales);
+      this.certificadoEnergetico.set(p.certificadoEnergetico);
+      this.fechaPublicacion.set(p.fechaPublicacion);
+      this.fechaUltimaRevision.set(p.fechaUltimaRevision);
       this.estado.set(p.estado);
       this.fechaCita.set(p.fechaCita ?? '');
       this.notas.set(p.notas);
@@ -576,6 +720,18 @@ export class PisoForm implements OnInit {
       estadoPiso: this.estadoPiso(),
       tipoContacto: this.tipoContacto(),
       inmobiliaria: this.esInmobiliaria() ? this.inmobiliaria().trim() || undefined : undefined,
+      gastosComunidad: this.gastosComunidad(),
+      ibiAnual: this.ibiAnual(),
+      derramas: this.derramas().trim(),
+      reformaEstimada: this.reformaEstimada(),
+      minutosMetro: this.minutosMetro(),
+      minutosBus: this.minutosBus(),
+      ocupado: this.ocupado(),
+      nudaPropiedad: this.nudaPropiedad(),
+      observacionesLegales: this.observacionesLegales().trim(),
+      certificadoEnergetico: this.certificadoEnergetico().trim().toUpperCase(),
+      fechaPublicacion: this.fechaPublicacion(),
+      fechaUltimaRevision: this.fechaUltimaRevision(),
       estado: this.estado(),
       fechaCita: this.fechaCita().trim() ? this.fechaCita() : undefined,
       notas: this.notas().trim(),

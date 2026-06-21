@@ -1,8 +1,8 @@
-import { EstadoPiso, Piso } from '../models/piso.model';
+import { Piso } from '../models/piso.model';
 
 /**
- * Rango de valores (mín./máx.) del conjunto de pisos, necesario para
- * normalizar precio y metros entre 0 y 1.
+ * Rango de precio/metros del conjunto (se mantiene para mostrar el mínimo y
+ * máximo en la UI; la puntuación ya NO depende de él).
  */
 export interface RangoPuntuacion {
   precioMin: number;
@@ -11,18 +11,6 @@ export interface RangoPuntuacion {
   metrosMax: number;
 }
 
-/** Puntos por estado material del piso (mejor estado = más puntos). */
-const PUNTOS_ESTADO: Record<EstadoPiso, number> = {
-  'Listo para entrar': 3,
-  'Reforma parcial': 2,
-  'Reforma total': 1,
-};
-
-/**
- * Calcula el rango (mín./máx. de precio y metros) sobre TODOS los pisos.
- * Si la lista está vacía devuelve un rango neutro para evitar divisiones
- * por cero.
- */
 export function calcularRango(pisos: Piso[]): RangoPuntuacion {
   if (pisos.length === 0) {
     return { precioMin: 0, precioMax: 0, metrosMin: 0, metrosMax: 0 };
@@ -37,43 +25,96 @@ export function calcularRango(pisos: Piso[]): RangoPuntuacion {
   };
 }
 
-/** Normaliza un valor a [0, 1] de forma directa (mayor valor = más cerca de 1). */
-function normalizar(valor: number, min: number, max: number): number {
-  if (max <= min) {
-    return 1; // todos iguales: no penalizamos a nadie
-  }
-  return (valor - min) / (max - min);
-}
-
-/** Normaliza de forma inversa (menor valor = más cerca de 1). */
-function normalizarInverso(valor: number, min: number, max: number): number {
-  if (max <= min) {
-    return 1;
-  }
-  return (max - valor) / (max - min);
+/** Un factor de la puntuación, con su etiqueta y los puntos (±) que aporta. */
+export interface FactorPuntuacion {
+  etiqueta: string;
+  puntos: number;
 }
 
 /**
- * Puntuación automática de un piso (más puntos = mejor opción).
- * Función PURA: mismo piso + mismo rango ⇒ misma puntuación.
+ * Puntuación por REGLAS y umbrales estables (no depende del piso más caro o más
+ * barato de la lista). Refleja el perfil de búsqueda real: ≤200k €, ≥2 hab,
+ * plantas bajas (penaliza 3ª+ sin ascensor), listo para entrar, €/m² ajustado,
+ * cercanía a transporte y SIN riesgos legales/ocupación.
  *
- * Desglose:
- *   - Precio:       inverso, normalizado 0–10 (más barato, mejor)
- *   - m²:           directo, normalizado 0–10 (más grande, mejor)
- *   - Habitaciones: nº × 1.5
- *   - Estado piso:  Listo=3 / Reforma parcial=2 / Reforma total=1
- *   - Ascensor:     +1 si tiene
+ * Función PURA. `desglosePuntuacion` devuelve el detalle; `puntuacionPiso` el
+ * total (suma de los factores con puntos ≠ 0).
  */
-export function puntuacionPiso(piso: Piso, rango: RangoPuntuacion): number {
-  const puntosPrecio = normalizarInverso(piso.precio, rango.precioMin, rango.precioMax) * 10;
-  const puntosMetros = normalizar(piso.metros, rango.metrosMin, rango.metrosMax) * 10;
-  const puntosHabitaciones = piso.habitaciones * 1.5;
-  const puntosEstado = PUNTOS_ESTADO[piso.estadoPiso];
-  const puntosAscensor = piso.ascensor ? 1 : 0;
+export function desglosePuntuacion(piso: Piso): FactorPuntuacion[] {
+  const f: FactorPuntuacion[] = [];
+  const add = (etiqueta: string, puntos: number) => {
+    if (puntos !== 0) f.push({ etiqueta, puntos });
+  };
 
-  const total =
-    puntosPrecio + puntosMetros + puntosHabitaciones + puntosEstado + puntosAscensor;
+  // Precio (umbral preferido 200.000 €)
+  if (piso.precio > 0) {
+    if (piso.precio <= 150000) add('Precio ≤ 150k', 20);
+    else if (piso.precio <= 200000) add('Precio ≤ 200k', 12);
+    else if (piso.precio <= 250000) add('Precio ≤ 250k', 4);
+    else add('Precio > 250k', -6);
+  }
 
-  // Redondeo a un decimal para una lectura cómoda en la card.
+  // €/m²
+  if (piso.precio > 0 && piso.metros > 0) {
+    const pm2 = piso.precio / piso.metros;
+    if (pm2 <= 2000) add('€/m² muy bueno', 10);
+    else if (pm2 <= 2500) add('€/m² bueno', 6);
+    else if (pm2 <= 3000) add('€/m² correcto', 2);
+    else if (pm2 > 3500) add('€/m² alto', -4);
+  }
+
+  // Habitaciones (mínimo deseado: 2)
+  if (piso.habitaciones >= 3) add('3+ habitaciones', 8);
+  else if (piso.habitaciones === 2) add('2 habitaciones', 6);
+  else if (piso.habitaciones <= 1) add('1 habitación', -4);
+
+  // Planta + ascensor (se prefieren plantas bajas; 3ª+ sin ascensor penaliza)
+  if (piso.planta <= 0) add('Planta baja', 6);
+  else if (piso.planta <= 2) add('Planta baja-media', 3);
+  else if (piso.ascensor) add('Planta alta con ascensor', 1);
+  else add('3ª+ planta sin ascensor', -10);
+
+  if (piso.ascensor) add('Ascensor', 2);
+
+  // Estado del inmueble
+  if (piso.estadoPiso === 'Listo para entrar') add('Listo para entrar', 10);
+  else if (piso.estadoPiso === 'Reforma parcial') add('Reforma parcial', -4);
+  else if (piso.estadoPiso === 'Reforma total') add('Reforma total', -12);
+
+  // Reforma estimada (€)
+  if (piso.reformaEstimada > 30000) add('Reforma cara (>30k)', -8);
+  else if (piso.reformaEstimada > 10000) add('Reforma media (>10k)', -4);
+  else if (piso.reformaEstimada > 0) add('Reforma ligera', -1);
+
+  // Transporte (minutos andando)
+  if (piso.minutosMetro > 0) {
+    if (piso.minutosMetro <= 5) add('Metro muy cerca', 8);
+    else if (piso.minutosMetro <= 10) add('Metro cerca', 5);
+    else if (piso.minutosMetro <= 15) add('Metro a 15 min', 2);
+  }
+  if (piso.minutosBus > 0 && piso.minutosBus <= 5) add('Bus muy cerca', 3);
+
+  // Costes recurrentes
+  if (piso.gastosComunidad > 150) add('Comunidad cara', -4);
+  else if (piso.gastosComunidad > 0 && piso.gastosComunidad <= 50) add('Comunidad baja', 2);
+  if (piso.ibiAnual > 600) add('IBI alto', -2);
+  if (piso.derramas.trim()) add('Derrama pendiente', -10);
+
+  // Energía
+  const cee = piso.certificadoEnergetico.toUpperCase();
+  if (cee === 'A' || cee === 'B') add('Eficiencia A/B', 3);
+  else if (cee === 'F' || cee === 'G') add('Eficiencia F/G', -2);
+
+  // Riesgos legales / ocupación
+  if (piso.ocupado) add('Ocupado', -25);
+  if (piso.nudaPropiedad) add('Nuda propiedad', -20);
+  if (piso.observacionesLegales.trim()) add('Riesgo legal anotado', -10);
+
+  return f;
+}
+
+/** Puntuación total (suma de factores), redondeada a 1 decimal. */
+export function puntuacionPiso(piso: Piso): number {
+  const total = desglosePuntuacion(piso).reduce((acc, x) => acc + x.puntos, 0);
   return Math.round(total * 10) / 10;
 }

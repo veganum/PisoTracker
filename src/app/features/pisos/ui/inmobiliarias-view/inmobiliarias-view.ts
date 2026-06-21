@@ -66,7 +66,7 @@ import { ContactoCard } from '../contacto-card/contacto-card';
           </p>
         </div>
       } @else {
-        <div class="space-y-4 pt-1">
+        <div class="grid gap-4 pt-1 sm:grid-cols-2">
           @for (c of contactos(); track c.nombre) {
             <app-contacto-card [contacto]="c" />
           }

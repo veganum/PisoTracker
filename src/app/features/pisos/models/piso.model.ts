@@ -44,6 +44,33 @@ export interface Piso {
   tipoContacto: TipoContacto;
   inmobiliaria?: string;
 
+  // --- Costes (todos opcionales; 0/'' = sin dato) ---
+  /** Gastos de comunidad (€/mes). */
+  gastosComunidad: number;
+  /** IBI anual (€/año). */
+  ibiAnual: number;
+  /** Derramas conocidas (texto; vacío = ninguna). */
+  derramas: string;
+  /** Estimación de reforma (€). */
+  reformaEstimada: number;
+
+  // --- Transporte (minutos andando; 0 = sin dato) ---
+  minutosMetro: number;
+  minutosBus: number;
+
+  // --- Riesgos ---
+  ocupado: boolean;
+  nudaPropiedad: boolean;
+  observacionesLegales: string;
+
+  // --- Otros ---
+  /** Certificado energético (A–G; '' = desconocido). */
+  certificadoEnergetico: string;
+  /** Fecha de publicación del anuncio (ISO; '' = sin dato). */
+  fechaPublicacion: string;
+  /** Fecha de última revisión por el usuario (ISO; '' = sin dato). */
+  fechaUltimaRevision: string;
+
   // --- Gestión ---
   estado: EstadoPipeline;
   /** ISO (fecha y hora). Obligatorio si `estado === 'Agendado'`. */

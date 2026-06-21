@@ -2,6 +2,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { STORAGE } from '../../../core/persistence/storage.token';
 import { BloqueGuion } from '../models/guion.model';
 import { GUION_SEED } from './guion.seed';
+import { SyncStatusService } from './sync-status.service';
 
 const CLAVE_GUION = 'pisotracker.guion';
 
@@ -20,6 +21,7 @@ export interface ProgresoGuion {
 @Injectable({ providedIn: 'root' })
 export class GuionStore {
   private readonly storage = inject(STORAGE);
+  private readonly sync = inject(SyncStatusService);
 
   /** Bloques del guion (se rellenan de forma asíncrona desde el puerto). */
   readonly bloques = signal<BloqueGuion[]>([]);
@@ -32,7 +34,7 @@ export class GuionStore {
     effect(() => {
       const bloques = this.bloques();
       if (this.cargado()) {
-        void this.storage.guardar(CLAVE_GUION, bloques);
+        void this.sync.ejecutar(() => this.storage.guardar(CLAVE_GUION, bloques));
       }
     });
     void this.inicializar();
@@ -112,7 +114,8 @@ export class GuionStore {
 
   private async inicializar(): Promise<void> {
     const guardado = await this.storage.cargar<BloqueGuion[]>(CLAVE_GUION);
-    this.bloques.set(guardado && guardado.length > 0 ? guardado : GUION_SEED);
+    // `null` = nunca guardado → seed. `[]` = vaciado por el usuario → se respeta.
+    this.bloques.set(guardado ?? GUION_SEED);
     this.cargado.set(true);
   }
 }

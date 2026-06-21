@@ -48,7 +48,8 @@ export class ThemeService {
         document.documentElement.classList.toggle('dark', oscuro);
       }
       if (this.cargado()) {
-        void this.storage.guardar(CLAVE_TEMA, this.preferencia());
+        // El tema no es crítico: si falla el guardado, no molestamos al usuario.
+        this.storage.guardar(CLAVE_TEMA, this.preferencia()).catch(() => {});
       }
     });
 

@@ -39,6 +39,16 @@ const ZOOM_INICIAL = 12;
     <div class="relative h-full w-full">
       <div #mapa class="h-full w-full"></div>
 
+      <!-- Centrar el mapa en todos los marcadores -->
+      <button
+        type="button"
+        (click)="centrarEnTodos()"
+        aria-label="Centrar el mapa en todos los pisos"
+        class="absolute right-3 top-3 z-[1000] flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-lg shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
+      >
+        🎯
+      </button>
+
       <!-- Leyenda de colores del pipeline (captura el clic: no añade vivienda) -->
       <div
         class="absolute bottom-3 left-3 z-[1000] cursor-default select-none rounded-2xl bg-surface/95 px-3 py-2.5 text-xs shadow-lg ring-1 ring-border backdrop-blur"
@@ -115,6 +125,16 @@ export class MapaView {
 
     // Dibujo inicial (el contenedor ya tiene tamaño real aquí).
     this.redibujarMarcadores(this.store.pisos());
+  }
+
+  /** Ajusta el encuadre del mapa para que se vean todos los pisos. */
+  centrarEnTodos(): void {
+    const pisos = this.store.pisos();
+    if (!this.mapa || pisos.length === 0) {
+      return;
+    }
+    const bounds = L.latLngBounds(pisos.map((p) => [p.lat, p.lng] as L.LatLngTuple));
+    this.mapa.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
   }
 
   /** Vacía y vuelve a pintar todos los marcadores. */

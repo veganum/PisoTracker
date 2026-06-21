@@ -34,14 +34,15 @@ export class SupabaseAdapter implements StoragePort {
       .from(this.tabla)
       .upsert({ clave, valor, actualizado_en: new Date().toISOString() }, { onConflict: 'user_id,clave' });
     if (error) {
-      console.error('[Supabase] guardar', clave, error.message);
+      // Propagamos para que el SyncStatusService lo refleje en la UI.
+      throw new Error(`Supabase guardar "${clave}": ${error.message}`);
     }
   }
 
   async borrar(clave: string): Promise<void> {
     const { error } = await this.sb.from(this.tabla).delete().eq('clave', clave);
     if (error) {
-      console.error('[Supabase] borrar', clave, error.message);
+      throw new Error(`Supabase borrar "${clave}": ${error.message}`);
     }
   }
 }

@@ -34,7 +34,17 @@ export class AuthService {
       this.cargandoSesion.set(false);
     });
     this.sb.auth.onAuthStateChange((_evento, session) => {
+      const nuevoId = session?.user?.id ?? null;
+      const anteriorId = this.usuario()?.id ?? null;
       this.aplicar(session?.user ?? null);
+
+      // Si cambia el USUARIO una vez ya cargada la app (login distinto o
+      // logout), recargamos: los stores son singletons con datos en memoria y
+      // así evitamos mostrar/guardar datos del usuario anterior. La carga
+      // inicial (cargandoSesion) no dispara recarga.
+      if (!this.cargandoSesion() && nuevoId !== anteriorId) {
+        location.reload();
+      }
     });
   }
 

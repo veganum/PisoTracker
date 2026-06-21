@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { PisosStore } from '../../data/pisos.store';
 import { ToastService } from '../../data/toast.service';
 import { Contacto, SUBTIPOS_FINANCIERA, UnidadHonorarios } from '../../models/contacto.model';
@@ -26,14 +26,33 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
             {{ esInmo() ? 'Inmobiliaria' : 'Financiera · ' + contacto().subtipo }}
           </span>
         </div>
-        <button
-          type="button"
-          (click)="store.borrarContacto(contacto().nombre)"
-          aria-label="Borrar contacto"
-          class="rounded-lg bg-danger/10 px-2.5 py-1.5 text-sm text-danger active:scale-95"
-        >
-          🗑️
-        </button>
+        @if (confirmandoBorrado()) {
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              (click)="store.borrarContacto(contacto().nombre)"
+              class="rounded-lg bg-danger px-2.5 py-1.5 text-sm font-semibold text-white active:scale-95"
+            >
+              Borrar
+            </button>
+            <button
+              type="button"
+              (click)="confirmandoBorrado.set(false)"
+              class="rounded-lg bg-surface-2 px-2.5 py-1.5 text-sm text-muted ring-1 ring-border active:scale-95"
+            >
+              Cancelar
+            </button>
+          </div>
+        } @else {
+          <button
+            type="button"
+            (click)="confirmandoBorrado.set(true)"
+            aria-label="Borrar contacto"
+            class="rounded-lg bg-danger/10 px-2.5 py-1.5 text-sm text-danger active:scale-95"
+          >
+            🗑️
+          </button>
+        }
       </div>
 
       <!-- Valoración -->
@@ -59,7 +78,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
         <input
           type="text"
           [value]="contacto().personaContacto"
-          (input)="guardar({ personaContacto: valor($event) })"
+          (change)="guardar({ personaContacto: valor($event) })"
           placeholder="Nombre del agente…"
           class="campo py-2.5"
         />
@@ -72,7 +91,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
             <input
               type="tel"
               [value]="contacto().telefono"
-              (input)="guardar({ telefono: valor($event) })"
+              (change)="guardar({ telefono: valor($event) })"
               placeholder="6XX XXX XXX"
               class="campo py-2.5"
             />
@@ -88,7 +107,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
             <input
               type="email"
               [value]="contacto().email"
-              (input)="guardar({ email: valor($event) })"
+              (change)="guardar({ email: valor($event) })"
               placeholder="correo@…"
               class="campo py-2.5"
             />
@@ -106,7 +125,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
           <input
             type="url"
             [value]="contacto().url"
-            (input)="guardar({ url: valor($event) })"
+            (change)="guardar({ url: valor($event) })"
             placeholder="https://…"
             class="campo py-2.5"
           />
@@ -142,7 +161,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
           <div>
             <span class="etiqueta">Honorarios comprador</span>
             <div class="flex items-center gap-1.5">
-              <input type="number" inputmode="decimal" [value]="contacto().honorariosComprador" (input)="guardar({ honorariosComprador: num($event) })" class="campo py-2.5" />
+              <input type="number" inputmode="decimal" [value]="contacto().honorariosComprador" (change)="guardar({ honorariosComprador: num($event) })" class="campo py-2.5" />
               <div class="flex shrink-0 gap-1 rounded-xl bg-surface-2 p-1 ring-1 ring-border">
                 @for (u of unidades; track u) {
                   <button type="button" (click)="guardar({ unidadComprador: u })" class="rounded-lg px-2 py-1 text-sm font-semibold transition" [class.bg-surface]="contacto().unidadComprador === u" [class.text-text]="contacto().unidadComprador === u" [class.text-muted]="contacto().unidadComprador !== u">{{ u }}</button>
@@ -153,7 +172,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
           <div>
             <span class="etiqueta">Honorarios vendedor</span>
             <div class="flex items-center gap-1.5">
-              <input type="number" inputmode="decimal" [value]="contacto().honorariosVendedor" (input)="guardar({ honorariosVendedor: num($event) })" class="campo py-2.5" />
+              <input type="number" inputmode="decimal" [value]="contacto().honorariosVendedor" (change)="guardar({ honorariosVendedor: num($event) })" class="campo py-2.5" />
               <div class="flex shrink-0 gap-1 rounded-xl bg-surface-2 p-1 ring-1 ring-border">
                 @for (u of unidades; track u) {
                   <button type="button" (click)="guardar({ unidadVendedor: u })" class="rounded-lg px-2 py-1 text-sm font-semibold transition" [class.bg-surface]="contacto().unidadVendedor === u" [class.text-text]="contacto().unidadVendedor === u" [class.text-muted]="contacto().unidadVendedor !== u">{{ u }}</button>
@@ -174,7 +193,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
 
         <label class="block">
           <span class="etiqueta">Dirección</span>
-          <input type="text" [value]="contacto().direccion" (input)="guardar({ direccion: valor($event) })" placeholder="Dirección de la oficina…" class="campo py-2.5" />
+          <input type="text" [value]="contacto().direccion" (change)="guardar({ direccion: valor($event) })" placeholder="Dirección de la oficina…" class="campo py-2.5" />
         </label>
       }
 
@@ -196,31 +215,31 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
 
         <label class="block">
           <span class="etiqueta">Entidades con las que trabaja</span>
-          <input type="text" [value]="contacto().entidades" (input)="guardar({ entidades: valor($event) })" placeholder="BBVA, Santander, ING…" class="campo py-2.5" />
+          <input type="text" [value]="contacto().entidades" (change)="guardar({ entidades: valor($event) })" placeholder="BBVA, Santander, ING…" class="campo py-2.5" />
         </label>
 
         <div class="grid grid-cols-2 gap-3">
           <label class="block">
             <span class="etiqueta">Financiación máx. (%)</span>
-            <input type="number" inputmode="numeric" [value]="contacto().financiacionMax" (input)="guardar({ financiacionMax: num($event) })" class="campo py-2.5" />
+            <input type="number" inputmode="numeric" [value]="contacto().financiacionMax" (change)="guardar({ financiacionMax: num($event) })" class="campo py-2.5" />
           </label>
           <label class="block">
             <span class="etiqueta">Aprobación (días)</span>
-            <input type="number" inputmode="numeric" [value]="contacto().tiempoAprobacion" (input)="guardar({ tiempoAprobacion: num($event) })" class="campo py-2.5" />
+            <input type="number" inputmode="numeric" [value]="contacto().tiempoAprobacion" (change)="guardar({ tiempoAprobacion: num($event) })" class="campo py-2.5" />
           </label>
           <label class="block">
             <span class="etiqueta">Comisión apertura</span>
-            <input type="number" inputmode="decimal" [value]="contacto().comisionApertura" (input)="guardar({ comisionApertura: num($event) })" class="campo py-2.5" />
+            <input type="number" inputmode="decimal" [value]="contacto().comisionApertura" (change)="guardar({ comisionApertura: num($event) })" class="campo py-2.5" />
           </label>
           <label class="block">
             <span class="etiqueta">Comisión intermediación</span>
-            <input type="number" inputmode="decimal" [value]="contacto().comisionIntermediacion" (input)="guardar({ comisionIntermediacion: num($event) })" class="campo py-2.5" />
+            <input type="number" inputmode="decimal" [value]="contacto().comisionIntermediacion" (change)="guardar({ comisionIntermediacion: num($event) })" class="campo py-2.5" />
           </label>
         </div>
 
         <label class="block">
           <span class="etiqueta">Vinculaciones / productos exigidos</span>
-          <input type="text" [value]="contacto().vinculaciones" (input)="guardar({ vinculaciones: valor($event) })" placeholder="Nómina, seguros, tarjeta…" class="campo py-2.5" />
+          <input type="text" [value]="contacto().vinculaciones" (change)="guardar({ vinculaciones: valor($event) })" placeholder="Nómina, seguros, tarjeta…" class="campo py-2.5" />
         </label>
 
         <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -246,7 +265,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
       <!-- Observaciones (común) -->
       <label class="block">
         <span class="etiqueta">Observaciones</span>
-        <textarea rows="2" [value]="contacto().observaciones" (input)="guardar({ observaciones: valor($event) })" placeholder="Trato, condiciones, recordatorios…" class="campo resize-none py-2.5"></textarea>
+        <textarea rows="2" [value]="contacto().observaciones" (change)="guardar({ observaciones: valor($event) })" placeholder="Trato, condiciones, recordatorios…" class="campo resize-none py-2.5"></textarea>
       </label>
     </article>
   `,
@@ -256,6 +275,9 @@ export class ContactoCard {
   private readonly toast = inject(ToastService);
 
   readonly contacto = input.required<Contacto>();
+
+  /** Paso de confirmación antes de borrar el contacto. */
+  readonly confirmandoBorrado = signal(false);
 
   readonly distritos = DISTRITOS_NOMBRES;
   readonly subtipos = SUBTIPOS_FINANCIERA;
