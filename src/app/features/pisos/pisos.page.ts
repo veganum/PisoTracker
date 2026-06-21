@@ -64,8 +64,12 @@ interface ConfigPestana {
           } @else if (sync.estado() === 'error') {
             <span class="text-xs text-danger" title="Error al sincronizar">⚠️</span>
           }
-          <span class="rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold text-text">
-            {{ store.pisos().length }}
+          <span
+            class="inline-flex items-center gap-1 rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold text-text"
+            [attr.title]="store.pisos().length + ' pisos guardados'"
+            aria-label="Pisos guardados"
+          >
+            🏢 {{ store.pisos().length }}
           </span>
           <button
             type="button"

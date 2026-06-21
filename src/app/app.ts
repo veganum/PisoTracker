@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AuthService } from './core/auth/auth.service';
 import { Login } from './core/auth/login';
 import { USAR_SUPABASE } from './core/config';
+import { ThemeService } from './core/theme/theme.service';
 import { PisosPage } from './features/pisos/pisos.page';
 
 /**
@@ -27,4 +28,8 @@ import { PisosPage } from './features/pisos/pisos.page';
 export class App {
   protected readonly authRequerido = USAR_SUPABASE;
   protected readonly auth = inject(AuthService);
+
+  // Inicializa el tema en el arranque (antes del login) para que la pantalla
+  // de acceso siga el tema del sistema (claro/oscuro) desde el primer render.
+  private readonly theme = inject(ThemeService);
 }
