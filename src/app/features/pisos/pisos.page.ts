@@ -3,6 +3,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { USAR_SUPABASE } from '../../core/config';
 import { ThemeService } from '../../core/theme/theme.service';
 import { Icono } from '../../shared/icono/icono';
+import { MigracionService } from './data/migracion.service';
 import { PisosStore } from './data/pisos.store';
 import { SyncStatusService } from './data/sync-status.service';
 import { ToastService } from './data/toast.service';
@@ -127,6 +128,29 @@ interface ConfigPestana {
         </div>
       </header>
 
+      <!-- Aviso para importar datos locales antiguos a la cuenta -->
+      @if (migracion.disponible()) {
+        <div class="flex items-center gap-2 border-b border-border bg-primary/10 px-4 py-2 text-sm">
+          <span class="flex-1 text-text">Tienes datos en este navegador. ¿Importarlos a tu cuenta?</span>
+          <button
+            type="button"
+            (click)="migracion.migrar()"
+            [disabled]="migracion.migrando()"
+            class="btn-primario shrink-0 px-3 py-1.5 text-xs"
+          >
+            {{ migracion.migrando() ? 'Importando…' : 'Importar' }}
+          </button>
+          <button
+            type="button"
+            (click)="migracion.disponible.set(false)"
+            aria-label="Descartar aviso"
+            class="shrink-0 text-muted"
+          >
+            <app-icono nombre="x" [tam]="16" />
+          </button>
+        </div>
+      }
+
       <!-- Contenido -->
       <main class="relative min-h-0 flex-1">
         @if (!store.cargado()) {
@@ -246,6 +270,7 @@ export class PisosPage {
   protected readonly theme = inject(ThemeService);
   protected readonly auth = inject(AuthService);
   protected readonly sync = inject(SyncStatusService);
+  protected readonly migracion = inject(MigracionService);
 
   /** Muestra el botón de cerrar sesión solo cuando hay login (Supabase). */
   protected readonly mostrarLogout = USAR_SUPABASE;
