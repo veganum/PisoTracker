@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { FocusTrap } from '../../../../shared/a11y/focus-trap';
 
 /**
  * Diálogo modal de confirmación (usado antes de descartar/borrar un piso).
@@ -7,6 +8,8 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 @Component({
   selector: 'app-confirm-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FocusTrap],
+  host: { '(document:keydown.escape)': 'cancelar.emit()' },
   template: `
     <div
       class="animar-fade fixed inset-0 z-[2100] flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
@@ -15,6 +18,11 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       <div
         class="animar-escala w-full max-w-sm rounded-3xl bg-surface p-5 text-center shadow-xl ring-1 ring-border"
         (click)="$event.stopPropagation()"
+        appFocusTrap
+        tabindex="-1"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="titulo()"
       >
         <div
           class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-2xl"

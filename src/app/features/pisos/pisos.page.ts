@@ -43,12 +43,43 @@ interface ConfigPestana {
     Icono,
   ],
   template: `
-    <div class="mx-auto flex h-[100dvh] max-w-lg flex-col bg-bg lg:max-w-6xl">
-      <!-- Cabecera -->
-      <header
-        class="z-20 flex items-center justify-between gap-2 border-b border-border bg-surface/80 px-4 py-3 backdrop-blur-lg"
+    <div class="mx-auto flex h-[100dvh] max-w-lg flex-col bg-bg lg:max-w-6xl lg:flex-row">
+      <!-- Barra lateral de navegación (solo escritorio) -->
+      <aside
+        class="hidden lg:flex lg:w-56 lg:shrink-0 lg:flex-col lg:gap-1 lg:border-r lg:border-border lg:bg-surface lg:p-3"
       >
-        <div class="flex items-center gap-2.5">
+        <div class="mb-3 flex items-center gap-2.5 px-2 pt-1">
+          <span
+            class="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-btn text-lg shadow-sm"
+          >
+            🏠
+          </span>
+          <div>
+            <h1 class="text-base font-bold leading-none text-text">PisoTracker</h1>
+            <p class="mt-0.5 text-xs text-muted">Madrid</p>
+          </div>
+        </div>
+        @for (p of pestanas; track p.id) {
+          <button
+            type="button"
+            (click)="tab.set(p.id)"
+            class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition"
+            [class.tab-activa]="tab() === p.id"
+            [class.text-text]="tab() === p.id"
+            [class.text-muted]="tab() !== p.id"
+          >
+            <span class="text-lg">{{ p.icono }}</span> {{ p.etiqueta }}
+          </button>
+        }
+      </aside>
+
+      <!-- Columna principal: cabecera + contenido + pestañas móviles -->
+      <div class="flex min-h-0 flex-1 flex-col">
+        <!-- Cabecera -->
+        <header
+          class="z-20 flex items-center justify-between gap-2 border-b border-border bg-surface/80 px-4 py-3 backdrop-blur-lg"
+        >
+          <div class="flex items-center gap-2.5 lg:hidden">
           <span
             class="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-btn text-lg shadow-sm"
           >
@@ -150,9 +181,9 @@ interface ConfigPestana {
         }
       </main>
 
-      <!-- Pestañas inferiores fijas -->
+      <!-- Pestañas inferiores fijas (solo móvil/tablet) -->
       <nav
-        class="z-20 grid grid-cols-5 border-t border-border bg-surface/90 px-1 pt-1.5 backdrop-blur-lg"
+        class="z-20 grid grid-cols-5 border-t border-border bg-surface/90 px-1 pt-1.5 backdrop-blur-lg lg:hidden"
         style="padding-bottom: calc(0.25rem + env(safe-area-inset-bottom))"
       >
         @for (p of pestanas; track p.id) {
@@ -173,6 +204,7 @@ interface ConfigPestana {
           </button>
         }
       </nav>
+      </div>
     </div>
 
     <!-- Modal de alta/edición -->
