@@ -114,14 +114,7 @@ const SIGUIENTE_ESTADO: Partial<Record<EstadoPipeline, EstadoPipeline>> = {
                     </button>
 
                     <!-- Pie: icono ojo (ver/editar) -->
-                    <div class="flex items-center justify-between border-t border-border px-4 py-2">
-                      @if (col.estado === 'Visitado') {
-                        <span class="text-xs text-muted italic">¿Qué hacemos?</span>
-                      } @else {
-                        <span class="text-xs text-muted">
-                          → {{ siguienteNombre(col.estado) }}
-                        </span>
-                      }
+                    <div class="flex items-center justify-end border-t border-border px-4 py-2">
                       <button
                         type="button"
                         (click)="editar.emit(piso)"
@@ -254,10 +247,6 @@ export class KanbanView {
       actual.add(estado);
     }
     this.expandidos.set(actual);
-  }
-
-  siguienteNombre(estado: EstadoPipeline): string {
-    return SIGUIENTE_ESTADO[estado] ?? '';
   }
 
   formatearPrecio(precio: number): string {
