@@ -115,6 +115,11 @@ export class PisosStore {
   /** `true` cuando ya se ha completado la carga inicial desde el puerto. */
   readonly cargado = signal(false);
 
+  /** Distrito elegido desde el mapa (para prefiltrar la Lista). */
+  readonly distritoMapa = signal('');
+  /** Barrio detectado del punto pulsado en el mapa (best-effort, asíncrono). */
+  readonly barrioMapa = signal('');
+
   constructor() {
     // Persistencia automática: cada cambio se guarda vía el puerto, pero SOLO
     // después de la carga inicial (si no, escribiríamos los signals vacíos

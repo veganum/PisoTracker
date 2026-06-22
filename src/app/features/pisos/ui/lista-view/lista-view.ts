@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { PisosStore } from '../../data/pisos.store';
 import { ESTADOS_PIPELINE, EstadoPipeline } from '../../models/estado-pipeline';
 import { barriosDe, Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
@@ -128,13 +136,30 @@ export class ListaView {
   readonly editar = output<Piso>();
   readonly borrar = output<Piso>();
 
+  constructor() {
+    // Al abrir la Lista, si venimos de pulsar un distrito en el mapa, lo aplicamos.
+    const delMapa = this.store.distritoMapa();
+    if (delMapa) {
+      this.fDistrito.set(delMapa);
+    }
+
+    // El barrio del punto pulsado llega un instante después (geocodificación):
+    // lo aplicamos al filtro cuando esté disponible.
+    effect(() => {
+      const barrio = this.store.barrioMapa();
+      if (barrio) {
+        this.fBarrio.set(barrio);
+      }
+    });
+  }
+
   // Opciones de filtro
   readonly distritos = DISTRITOS_NOMBRES;
   readonly estadosPipeline = ESTADOS_PIPELINE;
   readonly tiposContacto = TIPOS_CONTACTO;
   readonly estadosPiso = ESTADOS_PISO;
 
-  // Filtros (''/vacío = sin filtrar por ese criterio)
+  // Filtros (''/vacío = sin filtrar por ese criterio).
   readonly fDistrito = signal('');
   readonly fBarrio = signal('');
   readonly fEstado = signal('');

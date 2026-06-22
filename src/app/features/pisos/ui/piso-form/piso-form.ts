@@ -10,6 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { GeocodingService } from '../../data/geocoding.service';
+import { UbicacionService } from '../../data/ubicacion.service';
 import { PisosStore } from '../../data/pisos.store';
 import {
   colorEstado,
@@ -537,6 +538,7 @@ export class PisoForm implements OnInit {
   readonly cerrar = output<void>();
 
   private readonly geocoding = inject(GeocodingService);
+  private readonly ubicacion = inject(UbicacionService);
   private readonly store = inject(PisosStore);
 
   /** Indica que se está resolviendo la dirección del punto del mapa. */
@@ -680,23 +682,25 @@ export class PisoForm implements OnInit {
     }
   }
 
-  /** Resuelve la calle/barrio del punto pinchado, sin pisar lo que escriba el usuario. */
+  /** Resuelve calle (Nominatim) y distrito+barrio (geometría) del punto pinchado. */
   private autocompletarDireccion(lat: number, lng: number): void {
     this.buscandoDireccion.set(true);
+    // Calle / dirección por geocodificación inversa.
     this.geocoding
       .reverse(lat, lng)
-      .then(({ direccion, distrito, barrio }) => {
-        // Solo rellenamos si el usuario no ha empezado a escribir la dirección.
+      .then(({ direccion }) => {
         if (direccion && !this.direccion().trim()) {
           this.direccion.set(direccion);
         }
-        // Distrito/barrio detectados: rellenamos si aún no hay distrito elegido.
-        if (distrito && this.distrito() === '') {
-          this.distrito.set(distrito);
-          this.barrio.set(barrio ?? '');
-        }
       })
       .finally(() => this.buscandoDireccion.set(false));
+    // Distrito + barrio EXACTOS por geometría (point-in-polygon).
+    this.ubicacion.ubicar(lat, lng).then((loc) => {
+      if (loc && this.distrito() === '') {
+        this.distrito.set(loc.distrito);
+        this.barrio.set(loc.barrio);
+      }
+    });
   }
 
   /** Construye el piso y lo emite (si el formulario es válido). */

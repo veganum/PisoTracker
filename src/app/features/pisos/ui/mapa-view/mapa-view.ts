@@ -7,13 +7,25 @@ import {
   ElementRef,
   inject,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
 import { Icono } from '../../../../shared/icono/icono';
 import { PisosStore } from '../../data/pisos.store';
+import { UbicacionService } from '../../data/ubicacion.service';
 import { colorEstado, ESTADOS_PIPELINE } from '../../models/estado-pipeline';
+import { Distrito } from '../../models/madrid';
 import { Piso } from '../../models/piso.model';
+
+/** Nombres del GeoJSON que difieren de nuestro catálogo (acentos / nombre). */
+const NOMBRES_DISTRITO: Record<string, Distrito> = {
+  Chamartin: 'Chamartín',
+  Tetuan: 'Tetuán',
+  Chamberi: 'Chamberí',
+  Vicalvaro: 'Vicálvaro',
+  'San Blas': 'San Blas-Canillejas',
+};
 
 /** Centro y zoom inicial: Madrid. */
 const MADRID: L.LatLngTuple = [40.4168, -3.7038];
@@ -41,15 +53,33 @@ const ZOOM_INICIAL = 12;
     <div class="relative h-full w-full">
       <div #mapa class="h-full w-full"></div>
 
-      <!-- Centrar el mapa en todos los marcadores -->
-      <button
-        type="button"
-        (click)="centrarEnTodos()"
-        aria-label="Centrar el mapa en todos los pisos"
-        class="absolute right-3 top-3 z-[1000] flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-text shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
-      >
-        <app-icono nombre="crosshair" [tam]="20" />
-      </button>
+      <!-- Controles superiores derecha -->
+      <div class="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
+        <button
+          type="button"
+          (click)="centrarEnTodos()"
+          aria-label="Centrar el mapa en todos los pisos"
+          class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-text shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
+        >
+          <app-icono nombre="crosshair" [tam]="20" />
+        </button>
+        <button
+          type="button"
+          (click)="alternarDistritos()"
+          [attr.aria-pressed]="distritosVisibles()"
+          aria-label="Mostrar u ocultar distritos"
+          title="Distritos"
+          class="flex h-10 w-10 items-center justify-center rounded-xl shadow-lg ring-1 backdrop-blur transition active:scale-90"
+          [class.bg-primary-btn]="distritosVisibles()"
+          [class.text-on-primary]="distritosVisibles()"
+          [class.ring-transparent]="distritosVisibles()"
+          [class.bg-surface]="!distritosVisibles()"
+          [class.text-text]="!distritosVisibles()"
+          [class.ring-border]="!distritosVisibles()"
+        >
+          <app-icono nombre="layers" [tam]="20" />
+        </button>
+      </div>
 
       <!-- Leyenda de colores del pipeline (captura el clic: no añade vivienda) -->
       <div
@@ -70,6 +100,7 @@ const ZOOM_INICIAL = 12;
 })
 export class MapaView {
   private readonly store = inject(PisosStore);
+  private readonly ubicacion = inject(UbicacionService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Contenedor del mapa. */
@@ -78,12 +109,18 @@ export class MapaView {
   readonly nuevo = output<{ lat: number; lng: number }>();
   readonly editar = output<Piso>();
   readonly borrar = output<Piso>();
+  /** Distrito pulsado en el mapa (para filtrar la lista). */
+  readonly filtrarDistrito = output<Distrito>();
 
   /** Estados del pipeline para la leyenda de colores. */
   readonly estados = ESTADOS_PIPELINE;
 
+  /** Si la capa de distritos está visible. */
+  readonly distritosVisibles = signal(false);
+
   private mapa?: L.Map;
   private capaMarcadores?: L.LayerGroup;
+  private capaDistritos?: L.GeoJSON;
 
   constructor() {
     // Inicializa Leaflet cuando el DOM del componente ya está pintado.
@@ -137,6 +174,56 @@ export class MapaView {
     }
     const bounds = L.latLngBounds(pisos.map((p) => [p.lat, p.lng] as L.LatLngTuple));
     this.mapa.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+  }
+
+  /** Muestra u oculta la capa de distritos (carga el GeoJSON la 1ª vez). */
+  async alternarDistritos(): Promise<void> {
+    const mostrar = !this.distritosVisibles();
+    this.distritosVisibles.set(mostrar);
+    if (!this.mapa) {
+      return;
+    }
+    if (mostrar) {
+      this.capaDistritos ??= await this.cargarDistritos();
+      this.capaDistritos?.addTo(this.mapa);
+    } else if (this.capaDistritos) {
+      this.mapa.removeLayer(this.capaDistritos);
+    }
+  }
+
+  /** Carga el GeoJSON de los 21 distritos y construye su capa estilizada. */
+  private async cargarDistritos(): Promise<L.GeoJSON | undefined> {
+    try {
+      const resp = await fetch('distritos-madrid.geojson');
+      const datos = await resp.json();
+      return L.geoJSON(datos, {
+        style: () => ({ color: '#4f46e5', weight: 1.5, fillColor: '#4f46e5', fillOpacity: 0.06 }),
+        onEachFeature: (feature, capa) => {
+          const bruto = (feature.properties?.['name'] as string) ?? '';
+          const distrito = (NOMBRES_DISTRITO[bruto] ?? bruto) as Distrito;
+          capa.bindTooltip(distrito, { sticky: true });
+          capa.on('click', (e) => {
+            L.DomEvent.stopPropagation(e); // no dispares el "añadir piso" del mapa
+            this.store.distritoMapa.set(distrito); // distrito fiable (del polígono)
+            this.store.barrioMapa.set(''); // se rellenará al ubicar el barrio
+            this.filtrarDistrito.emit(distrito); // salta a la pestaña Lista (ya filtra)
+            // Barrio EXACTO del punto por geometría (point-in-polygon, asíncrono).
+            const { lat, lng } = (e as L.LeafletMouseEvent).latlng;
+            this.ubicacion.ubicar(lat, lng).then((loc) => {
+              if (loc && loc.distrito === distrito) {
+                this.store.barrioMapa.set(loc.barrio);
+              }
+            });
+          });
+          capa.on('mouseover', () => (capa as L.Path).setStyle({ fillOpacity: 0.18 }));
+          capa.on('mouseout', () => (capa as L.Path).setStyle({ fillOpacity: 0.06 }));
+        },
+      });
+    } catch (error) {
+      console.error('[distritos] no se pudo cargar el GeoJSON:', error);
+      this.distritosVisibles.set(false);
+      return undefined;
+    }
   }
 
   /** Vacía y vuelve a pintar todos los marcadores. */

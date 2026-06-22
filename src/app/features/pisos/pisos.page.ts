@@ -166,6 +166,7 @@ interface ConfigPestana {
               (nuevo)="abrirNuevo($event)"
               (editar)="abrirEditar($event)"
               (borrar)="pedirBorrar($event)"
+              (filtrarDistrito)="filtrarPorDistrito()"
             />
           }
           @case ('lista') {
@@ -285,6 +286,11 @@ export class PisosPage {
 
   // Estado del diálogo de confirmación
   readonly pisoBorrar = signal<Piso | null>(null);
+
+  /** Al pulsar un distrito en el mapa: salta a la Lista (el filtro va por el store). */
+  filtrarPorDistrito(): void {
+    this.tab.set('lista');
+  }
 
   readonly pestanas: readonly ConfigPestana[] = [
     { id: 'mapa', icono: '🗺️', etiqueta: 'Mapa' },

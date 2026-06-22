@@ -187,3 +187,28 @@ export const DISTRITOS_NOMBRES: readonly Distrito[] = DISTRITOS.map((d) => d.nom
 export function barriosDe(distrito: Distrito | '' | null | undefined): string[] {
   return DISTRITOS.find((d) => d.nombre === distrito)?.barrios ?? [];
 }
+
+/** Normaliza un texto para comparar sin acentos ni mayúsculas. */
+function normalizar(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Dado el nombre (posiblemente sin acentos) de un barrio, devuelve su
+ * `distrito` y el nombre canónico del barrio. `null` si no se reconoce.
+ */
+export function ubicarBarrio(nombreCrudo: string): { distrito: Distrito; barrio: string } | null {
+  const objetivo = normalizar(nombreCrudo);
+  for (const d of DISTRITOS) {
+    for (const b of d.barrios) {
+      if (normalizar(b) === objetivo) {
+        return { distrito: d.nombre, barrio: b };
+      }
+    }
+  }
+  return null;
+}
