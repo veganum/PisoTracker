@@ -68,9 +68,7 @@ export class GuionStore {
     this.bloques.update((bloques) =>
       bloques.map((b) => ({
         ...b,
-        preguntas: b.preguntas.map((p) =>
-          p.id === preguntaId ? { ...p, hecha: !p.hecha } : p,
-        ),
+        preguntas: b.preguntas.map((p) => (p.id === preguntaId ? { ...p, hecha: !p.hecha } : p)),
       })),
     );
   }
@@ -84,7 +82,10 @@ export class GuionStore {
     this.bloques.update((bloques) =>
       bloques.map((b) =>
         b.id === bloqueId
-          ? { ...b, preguntas: [...b.preguntas, { id: crypto.randomUUID(), texto: limpio, hecha: false }] }
+          ? {
+              ...b,
+              preguntas: [...b.preguntas, { id: crypto.randomUUID(), texto: limpio, hecha: false }],
+            }
           : b,
       ),
     );

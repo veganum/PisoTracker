@@ -75,6 +75,10 @@ export interface Piso {
   estado: EstadoPipeline;
   /** ISO (fecha y hora). Obligatorio si `estado === 'Agendado'`. */
   fechaCita?: string;
+  /** Con quién es la visita (nombre del agente, propietario, etc.). */
+  contactoCita: string;
+  /** Notas específicas de la cita (preguntas a hacer, cosas a llevar…). */
+  notasCita: string;
   notas: string;
 
   // --- Mapa ---

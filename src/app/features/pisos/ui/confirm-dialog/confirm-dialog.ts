@@ -32,9 +32,7 @@ import { FocusTrap } from '../../../../shared/a11y/focus-trap';
         <h2 class="text-lg font-bold text-text">{{ titulo() }}</h2>
         <p class="mt-1 text-sm text-muted">{{ mensaje() }}</p>
         <div class="mt-5 flex gap-3">
-          <button type="button" (click)="cancelar.emit()" class="btn-suave flex-1">
-            Cancelar
-          </button>
+          <button type="button" (click)="cancelar.emit()" class="btn-suave flex-1">Cancelar</button>
           <button
             type="button"
             (click)="confirmar.emit()"

@@ -14,7 +14,12 @@ preguntas para los distintos momentos de la compra.
 - **Signals** para todo el estado reactivo.
 - **Tailwind CSS v4** (vía `@tailwindcss/postcss`, configurado en `.postcssrc.json`;
   se importa con `@import 'tailwindcss'` en `src/styles.css`).
-- **Leaflet** + `@types/leaflet`, tiles de OpenStreetMap (sin API key).
+- **Leaflet** + `@types/leaflet`, tiles de OpenStreetMap (sin API key). GeoJSON de
+  distritos y barrios de Madrid en `public/` (sin API key).
+- **Supabase** (`@supabase/supabase-js`): nube + autenticación + Realtime como
+  backend de persistencia **opcional** (ver «Persistencia»). La `anonKey` es
+  pública por diseño; **RLS** protege los datos. NUNCA poner la `service_role`
+  en el frontend.
 - **TypeScript estricto** (`strict` + `strictTemplates`).
 
 ## Convenciones (IMPORTANTES, respétalas)
@@ -36,46 +41,98 @@ Screaming Architecture por features + hexagonal **solo en persistencia**.
 ```text
 src/app/
 ├── core/
-│   ├── persistence/       → StoragePort (puerto), adaptadores, InjectionToken
+│   ├── config.ts          → USAR_SUPABASE (flag) + SUPABASE_CONFIG (url/anonKey)
+│   ├── persistence/       → StoragePort (puerto), adaptadores (local/memoria/
+│   │                        supabase), InjectionToken
+│   ├── auth/              → AuthService (login email/contraseña) + login (pantalla)
+│   ├── supabase/          → SupabaseService (cliente), RealtimeService (sync vivo)
 │   └── theme/             → ThemeService (claro/oscuro)
+├── shared/
+│   ├── icono/             → <app-icono> (SVGs Lucide inline, OnPush)
+│   └── a11y/              → FocusTrap (directiva [appFocusTrap])
 └── features/pisos/
     ├── models/            → Piso, EstadoPipeline (flujo/laterales + colores),
-    │                        madrid (distritos+barrios), Contacto, Guion, tipos
+    │                        madrid (distritos+barrios+ubicarBarrio), Contacto,
+    │                        Guion, tipos
     ├── data/              → PisosStore, GuionStore, seeds (pisos/contactos/guion),
-    │                        puntuación, toast, geocoding
+    │                        puntuación, toast, geocoding, ubicacion (point-in-
+    │                        polygon), sync-status (outbox), migración
     ├── ui/<vista>/        → mapa, lista, favoritos, inmobiliarias(+contacto-card),
     │                        guion(+bloque), form, card, diálogo
-    └── pisos.page.ts      → shell con pestañas inferiores
+    └── pisos.page.ts      → shell: pestañas (móvil) + sidebar (desktop)
 ```
 
 ## Persistencia INTERCAMBIABLE (clave)
 
 El estado se persiste a través del **puerto** `STORAGE`
 (`core/persistence/storage.token.ts`). Los stores inyectan el puerto, nunca
-`localStorage` directamente.
+`localStorage` ni Supabase directamente.
 
-- Adaptadores: `LocalStorageAdapter` (JSON + try/catch) y `MemoryStorageAdapter`.
-- Cambiar de mecanismo = **una sola línea** en `src/app/app.config.ts`:
+- Adaptadores: `LocalStorageAdapter` (JSON + try/catch), `MemoryStorageAdapter`
+  (en memoria) y `SupabaseAdapter` (nube + RLS).
+- **El mecanismo lo decide un único flag** `USAR_SUPABASE` en `core/config.ts`,
+  leído en `app.config.ts`:
 
   ```typescript
-  { provide: STORAGE, useClass: LocalStorageAdapter }   // ↔ MemoryStorageAdapter / RestApiAdapter
+  // app.config.ts
+  { provide: STORAGE, useClass: USAR_SUPABASE ? SupabaseAdapter : LocalStorageAdapter }
   ```
 
-- Un futuro `RestApiAdapter` / `IndexedDbAdapter` solo implementa `StoragePort`
+  - `true`  → **Supabase** (nube, sincroniza entre dispositivos, requiere login).
+  - `false` → **localStorage** (local, sin login, no sincroniza).
+  - ⚠️ **Tener este flag en `false` es lo que rompe la sincronización**: si
+    «todo vuelve al estado original» o no aparece en otro dispositivo, lo
+    primero es comprobar que está en `true` y que el build desplegado lo tiene.
+- Un futuro `IndexedDbAdapter` / `RestApiAdapter` solo implementa `StoragePort`
   y se registra ahí; ni los stores ni los componentes cambian.
 - **Claves de almacenamiento:** `pisotracker.pisos`, `pisotracker.inmobiliarias`
   (guarda `Contacto[]`: inmobiliarias **y** financieras), `pisotracker.guion`,
-  `pisotracker.tema`.
+  `pisotracker.tema`. (Internas, no de datos: `pisotracker.outbox`,
+  `pisotracker.migrado`.)
+
+### Modelo Supabase (cuando `USAR_SUPABASE = true`)
+
+- **Almacén clave-valor por usuario** en la tabla `estado`
+  (`user_id · clave · valor jsonb · actualizado_en`). El `SupabaseAdapter` hace
+  `upsert` con `onConflict: 'user_id,clave'`; el `user_id` lo pone Postgres por
+  defecto (`auth.uid()`) y **RLS** garantiza que cada usuario solo ve lo suyo.
+  Las claves son las mismas `pisotracker.*` (un blob JSON por clave).
+- **Autenticación** (`core/auth/AuthService`): email + contraseña vía Supabase.
+  Sesión persistida por el SDK; `usuario` como signal; si cambia el usuario con
+  la app ya cargada (login distinto/logout) **recarga** para no mezclar datos.
+  Con `USAR_SUPABASE = false` queda inerte (no hay login).
+- **Resiliencia offline** (`data/SyncStatusService`): TODA escritura pasa por
+  `sync.guardar(clave, valor)`. Si falla (sin red), encola en un **outbox** por
+  clave (última escritura gana), lo **persiste** en `localStorage` y lo
+  **reintenta** al volver la conexión (evento `online`). Expone `estado`
+  (`ok | guardando | pendiente | error`) para el indicador de la cabecera.
+- **Realtime** (`core/supabase/RealtimeService`): se suscribe a `postgres_changes`
+  de la tabla `estado`; cuando otro dispositivo cambia una clave, el `PisosStore`
+  refresca el signal (compara JSON para no entrar en bucle). **Requiere habilitar
+  Realtime** para la tabla: `alter publication supabase_realtime add table
+  public.estado;`. Sin eso, igual sincroniza pero solo **al recargar**.
+- **Migración local → nube** (`data/MigracionService`): si hay datos en
+  `localStorage` de un uso previo sin cuenta, ofrece un banner para subirlos a
+  Supabase una vez (marca `pisotracker.migrado`). Sobrescribe lo que haya y
+  recarga.
 
 ## Estado central
 
 ### `PisosStore` (`providedIn: 'root'`)
 
-- `pisos = signal<Piso[]>(...)` inicializado desde el puerto (o el seed si está vacío).
-  Al cargar se **migran** pisos antiguos (barrio plano → `distrito` + `barrio`).
-- `contactos = signal<Contacto[]>(...)` inmobiliarias + financieras (seed si vacío;
-  migra el formato antiguo `CondicionesInmobiliaria` a `Contacto`).
-- `effect()` que persiste automáticamente cada cambio vía el puerto.
+- `pisos = signal<Piso[]>([])`; se rellena **asíncrono** en `inicializar()` desde
+  el puerto (`?? PISOS_SEED` si nunca se guardó; `[]` guardado se respeta). Al
+  cargar se **migran** pisos antiguos (barrio plano → `distrito` + `barrio`, y se
+  rellenan los campos nuevos de costes/transporte/riesgos con `migrarPiso`).
+- `contactos = signal<Contacto[]>([])` inmobiliarias + financieras (seed si nunca
+  guardado; migra el formato antiguo `CondicionesInmobiliaria` a `Contacto`).
+- `cargado = signal(false)`: los `effect()` de persistencia **solo guardan tras la
+  carga inicial** (si no, machacarían los datos con los signals vacíos).
+- Persistencia: dos `effect()` que llaman a `sync.guardar(clave, …)` (outbox), no
+  al puerto directo. Realtime: `realtime.escuchar(clave, …)` refresca el signal si
+  el valor remoto difiere del local.
+- `distritoMapa` / `barrioMapa = signal('')`: distrito y barrio elegidos al pulsar
+  un polígono en el mapa; la Lista los lee para prefiltrar (ver «Distritos en mapa»).
 - `computed()`: `rango`, `favoritos` (puntuados y ordenados), `nombresInmobiliarias`
   (detectadas en pisos), `inmobiliarias` (detectadas + creadas), `financieras`,
   `nombresInmobiliariasSugeridas`.
@@ -107,7 +164,14 @@ El estado se persiste a través del **puerto** `STORAGE`
 - **Distritos y barrios** (`models/madrid.ts`): los **21 distritos** oficiales de
   Madrid con sus **131 barrios**. `Piso` tiene `distrito` (obligatorio) + `barrio`
   (`string`, opcional). El barrio se valida contra el distrito elegido (selects
-  enlazados). `barriosDe(distrito)` da los barrios.
+  enlazados). `barriosDe(distrito)` da los barrios. `ubicarBarrio(nombre)` resuelve
+  un barrio (sin acentos/mayúsculas) a `{distrito, barrio}` canónicos.
+- **Campos del `Piso`** (`models/piso.model.ts`), además de localización/inmueble:
+  costes (`gastosComunidad`, `ibiAnual`, `derramas`, `reformaEstimada`), transporte
+  (`minutosMetro`, `minutosBus`), riesgos (`ocupado`, `nudaPropiedad`,
+  `observacionesLegales`) y otros (`certificadoEnergetico`, `fechaPublicacion`,
+  `fechaUltimaRevision`). Todos opcionales (0/'' = sin dato); `migrarPiso` los
+  rellena por defecto en pisos antiguos.
 - **Puntuación** (`data/puntuacion.util.ts`, función pura): precio inverso 0–10,
   m² directo 0–10, habitaciones ×1.5, estado piso 3/2/1, ascensor +1. Se calcula
   sobre el `rango` (mín/máx de precio y m²) de TODOS los pisos.
@@ -130,18 +194,37 @@ El estado se persiste a través del **puerto** `STORAGE`
   `fechaCita` obligatoria si `estado === 'Agendado'`; campo inmobiliaria visible si
   `tipoContacto === 'Inmobiliaria'`. El estado se elige con un **stepper** (los 4 del
   flujo) + chips para los laterales.
-- **Geocodificación inversa** (`data/geocoding.service.ts`): al pinchar el mapa en
-  un **alta nueva**, llama a **Nominatim (OSM)** vía `fetch` y autocompleta
-  Dirección, **Distrito y Barrio** (best-effort; no pisa lo que el usuario ya haya
-  escrito). Degrada a entrada manual si falla. Límite responsable ~1 req/seg.
+- **Autocompletado al alta (mapa)**: al pinchar el mapa en un **alta nueva** se
+  combinan dos fuentes (best-effort, sin pisar lo que el usuario ya escribió):
+  - `data/geocoding.service.ts` (**Nominatim/OSM** vía `fetch`) → la **calle/
+    dirección**. Degrada a entrada manual si falla. Límite responsable ~1 req/seg.
+  - `data/ubicacion.service.ts` → **Distrito y Barrio** por **point-in-polygon**
+    (ray casting) sobre `public/barrios-madrid.geojson`, cargado una sola vez. Es
+    fiable y offline (Nominatim devuelve barrios poco consistentes). Devuelve
+    `{distrito, barrio}` canónicos vía `ubicarBarrio`.
+- **Distritos en el mapa** (`ui/mapa-view`): botón 🗂️ (capa) que muestra/oculta
+  los 21 polígonos (`public/distritos-madrid.geojson`, cargado on-demand). Clic en
+  un polígono: `stopPropagation` (no añade piso) → fija `distritoMapa` (del
+  polígono, fiable) y emite `filtrarDistrito` → salta a la **Lista** ya prefiltrada;
+  en paralelo `ubicacion.ubicar(lat,lng)` resuelve el `barrioMapa` exacto. Algunos
+  nombres del GeoJSON difieren del catálogo (sin acentos): `NOMBRES_DISTRITO` los
+  mapea. La Lista lee `distritoMapa` en el constructor y `barrioMapa` con un
+  `effect()` (llega un instante después).
 - **Sugerencia de inmobiliaria**: el campo usa un **desplegable propio** (no
   `<datalist>`) que sugiere inmobiliarias existentes y permite escribir nuevas.
 
 ## UI / UX
 
-- **Pestañas inferiores** fijas (5): 🗺️ Mapa · 📋 Lista · ⭐ Favoritos ·
-  🏢 Inmob. · 📝 Guion (`id: 'agencias'`, etiqueta abreviada para que quepa en
-  móvil). Pastilla de acento (`.tab-activa`) en la activa.
+- **Navegación responsive**: en **móvil** pestañas inferiores fijas (5): 🗺️ Mapa ·
+  📋 Lista · ⭐ Favoritos · 🏢 Inmob. · 📝 Guion (`id: 'agencias'`, etiqueta
+  abreviada). En **desktop** (`lg:`) un `<aside>` sidebar lateral (la barra inferior
+  se oculta con `lg:hidden`). Pastilla de acento (`.tab-activa`) en la activa.
+- **Cabecera**: indicador de **estado de sincronización** (del `SyncStatusService`),
+  toggle de tema y, con Supabase, botón de salir. Banner de **migración** si hay
+  datos locales por importar.
+- **Iconografía híbrida**: emojis donde aportan color (estados, pestañas) +
+  `<app-icono>` (SVGs Lucide inline) donde conviene un icono neutro (acciones CRUD,
+  buscar, copiar, tel/mail, capa, salir). Accesibilidad: `FocusTrap` en overlays.
 - **FAB "+"** (alta de piso) **solo en Mapa y Lista** (`@if tab === 'mapa'||'lista'`).
 - **Vista Inmob.**: un segmentado superior **filtra** entre Inmobiliarias y
   Financieras (se muestra una sola lista) y fija el **tipo** del alta. Teléfono/email
@@ -170,6 +253,16 @@ El estado se persiste a través del **puerto** `STORAGE`
 - **Modo oscuro en Tailwind v4**: se usa `@custom-variant dark (&:where(.dark, .dark *))`
   y `@theme inline` mapeando a variables CSS; NO `bg-opacity-*` (deprecado) — usar
   `color/opacidad` (p. ej. `bg-primary/15`) o una clase con `color-mix`.
+- **Persistencia asíncrona + guardia `cargado`**: la carga inicial es `async`. Los
+  `effect()` que persisten DEBEN comprobar `cargado()` antes de escribir, o
+  guardarían los signals vacíos sobre los datos buenos. `null` del puerto = nunca
+  guardado (usar seed); `[]` = el usuario lo vació (respetar). No confundir.
+- **Síntoma «todo vuelve al estado original»**: casi siempre es `USAR_SUPABASE`
+  en `false` (app en modo localStorage) o un build desplegado con el flag viejo.
+  Verificar el flag y recompilar/redeploy antes de buscar bugs en el CRUD.
+- **Realtime no llega**: falta `alter publication supabase_realtime add table
+  public.estado;` en Supabase. El CRUD persiste igual; solo no hay sync *en vivo*
+  (sí al recargar).
 
 ## Entorno de build (Windows, importante)
 
@@ -201,6 +294,33 @@ node ./node_modules/@angular/cli/bin/ng.js build --configuration development
   y una entrada en `pestanas`.
 - **Resetear datos en el navegador:** borra las claves `pisotracker.*` de
   `localStorage` (DevTools → Application → Local Storage) y recarga: se vuelve a
-  sembrar desde los seeds.
-- **Cambiar persistencia a memoria** (no persiste entre recargas): en
-  `app.config.ts`, `{ provide: STORAGE, useClass: MemoryStorageAdapter }`.
+  sembrar desde los seeds. (En modo Supabase los datos viven en la nube; borra las
+  filas de la tabla `estado` de tu usuario para resembrar.)
+- **Cambiar persistencia:** flag `USAR_SUPABASE` en `core/config.ts`
+  (`true` = nube, `false` = localStorage). Para memoria: en `app.config.ts`,
+  `{ provide: STORAGE, useClass: MemoryStorageAdapter }`.
+
+### Setup de Supabase (una vez)
+
+```sql
+-- 1) Tabla clave-valor por usuario
+create table public.estado (
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  clave text not null,
+  valor jsonb,
+  actualizado_en timestamptz not null default now(),
+  primary key (user_id, clave)
+);
+
+-- 2) RLS: cada usuario solo accede a lo suyo
+alter table public.estado enable row level security;
+create policy "propios" on public.estado
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- 3) Sincronización EN VIVO (Realtime). Sin esto, sincroniza solo al recargar.
+alter publication supabase_realtime add table public.estado;
+```
+
+- Crea tu usuario en **Authentication → Users** (email + contraseña).
+- `SUPABASE_CONFIG` (url + `anonKey`) vive en `core/config.ts`. La `anonKey` es
+  pública; **nunca** pongas la `service_role` en el frontend.

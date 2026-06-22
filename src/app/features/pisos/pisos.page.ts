@@ -10,13 +10,13 @@ import { ToastService } from './data/toast.service';
 import { Piso } from './models/piso.model';
 import { ConfirmDialog } from './ui/confirm-dialog/confirm-dialog';
 import { FavoritosView } from './ui/favoritos-view/favoritos-view';
-import { GuionView } from './ui/guion-view/guion-view';
 import { InmobiliariasView } from './ui/inmobiliarias-view/inmobiliarias-view';
 import { ListaView } from './ui/lista-view/lista-view';
 import { MapaView } from './ui/mapa-view/mapa-view';
 import { PisoForm } from './ui/piso-form/piso-form';
+import { YoView } from './ui/yo-view/yo-view';
 
-type Pestana = 'mapa' | 'lista' | 'favoritos' | 'agencias' | 'guion';
+type Pestana = 'mapa' | 'lista' | 'favoritos' | 'agencias' | 'yo';
 
 /** Definición de las pestañas inferiores. */
 interface ConfigPestana {
@@ -38,7 +38,7 @@ interface ConfigPestana {
     ListaView,
     FavoritosView,
     InmobiliariasView,
-    GuionView,
+    YoView,
     PisoForm,
     ConfirmDialog,
     Icono,
@@ -81,156 +81,170 @@ interface ConfigPestana {
           class="z-20 flex items-center justify-between gap-2 border-b border-border bg-surface/80 px-4 py-3 backdrop-blur-lg"
         >
           <div class="flex items-center gap-2.5 lg:hidden">
-          <span
-            class="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-btn text-lg shadow-sm"
-          >
-            🏠
-          </span>
-          <div>
-            <h1 class="text-lg font-bold leading-none text-text">PisoTracker</h1>
-            <p class="mt-0.5 text-xs text-muted">Búsqueda de piso en Madrid</p>
+            <span
+              class="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-btn text-lg shadow-sm"
+            >
+              🏠
+            </span>
+            <div>
+              <h1 class="text-lg font-bold leading-none text-text">PisoTracker</h1>
+              <p class="mt-0.5 text-xs text-muted">Búsqueda de piso en Madrid</p>
+            </div>
           </div>
-        </div>
 
-        <div class="flex items-center gap-2">
-          @if (sync.estado() === 'guardando') {
-            <span class="text-xs text-muted" title="Guardando…">⏳</span>
-          } @else if (sync.estado() === 'pendiente') {
-            <span class="text-xs text-warning" title="Cambios pendientes de sincronizar">☁︎</span>
-          } @else if (sync.estado() === 'error') {
-            <span class="text-xs text-danger" title="Error al sincronizar">⚠️</span>
-          }
-          <span
-            class="inline-flex h-9 items-center gap-1 rounded-full bg-surface-2 px-3 text-sm font-semibold text-text"
-            [attr.title]="store.pisos().length + ' pisos guardados'"
-            aria-label="Pisos guardados"
-          >
-            🏢 {{ store.pisos().length }}
-          </span>
-          <button
-            type="button"
-            (click)="theme.alternar()"
-            [attr.aria-label]="theme.oscuro() ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
-            class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-muted ring-1 ring-border transition active:scale-90"
-          >
-            <app-icono [nombre]="theme.oscuro() ? 'sun' : 'moon'" [tam]="18" />
-          </button>
-          @if (mostrarLogout) {
+          <div class="flex items-center gap-2">
+            @if (sync.estado() === 'guardando') {
+              <span class="text-xs text-muted" title="Guardando…">⏳</span>
+            } @else if (sync.estado() === 'pendiente') {
+              <span class="text-xs text-warning" title="Cambios pendientes de sincronizar">☁︎</span>
+            } @else if (sync.estado() === 'error') {
+              <span class="text-xs text-danger" title="Error al sincronizar">⚠️</span>
+            }
+            <span
+              class="inline-flex h-9 items-center gap-1 rounded-full bg-surface-2 px-3 text-sm font-semibold text-text"
+              [attr.title]="store.pisos().length + ' pisos guardados'"
+              aria-label="Pisos guardados"
+            >
+              🏢 {{ store.pisos().length }}
+            </span>
             <button
               type="button"
-              (click)="auth.salir()"
-              aria-label="Cerrar sesión"
+              (click)="theme.alternar()"
+              [attr.aria-label]="theme.oscuro() ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
               class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-muted ring-1 ring-border transition active:scale-90"
             >
-              <app-icono nombre="log-out" [tam]="18" />
+              <app-icono [nombre]="theme.oscuro() ? 'sun' : 'moon'" [tam]="18" />
+            </button>
+            @if (mostrarLogout) {
+              <button
+                type="button"
+                (click)="auth.salir()"
+                aria-label="Cerrar sesión"
+                class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-muted ring-1 ring-border transition active:scale-90"
+              >
+                <app-icono nombre="log-out" [tam]="18" />
+              </button>
+            }
+          </div>
+        </header>
+
+        <!-- Aviso para importar datos locales antiguos a la cuenta -->
+        @if (migracion.disponible()) {
+          <div
+            class="flex items-center gap-2 border-b border-border bg-primary/10 px-4 py-2 text-sm"
+          >
+            <span class="flex-1 text-text"
+              >Tienes datos en este navegador. ¿Importarlos a tu cuenta?</span
+            >
+            <button
+              type="button"
+              (click)="migracion.migrar()"
+              [disabled]="migracion.migrando()"
+              class="btn-primario shrink-0 px-3 py-1.5 text-xs"
+            >
+              {{ migracion.migrando() ? 'Importando…' : 'Importar' }}
+            </button>
+            <button
+              type="button"
+              (click)="migracion.disponible.set(false)"
+              aria-label="Descartar aviso"
+              class="shrink-0 text-muted"
+            >
+              <app-icono nombre="x" [tam]="16" />
+            </button>
+          </div>
+        }
+
+        <!-- Contenido -->
+        <main class="relative min-h-0 flex-1">
+          @if (!store.cargado()) {
+            <div class="flex h-full flex-col items-center justify-center gap-3 text-muted">
+              <span class="text-3xl animate-pulse">🏠</span>
+              <span class="text-sm">Cargando tus pisos…</span>
+            </div>
+          } @else {
+            @switch (tab()) {
+              @case ('mapa') {
+                <app-mapa-view
+                  class="block h-full"
+                  (nuevo)="abrirNuevo($event)"
+                  (editar)="abrirEditar($event)"
+                  (borrar)="pedirBorrar($event)"
+                  (filtrarDistrito)="filtrarPorDistrito()"
+                />
+              }
+              @case ('lista') {
+                <div class="h-full overflow-y-auto p-4 pb-24">
+                  <app-lista-view (editar)="abrirEditar($event)" (borrar)="pedirBorrar($event)" />
+                </div>
+              }
+              @case ('favoritos') {
+                <div class="h-full overflow-y-auto p-4 pb-24">
+                  <app-favoritos-view
+                    (editar)="abrirEditar($event)"
+                    (borrar)="pedirBorrar($event)"
+                  />
+                </div>
+              }
+              @case ('agencias') {
+                <div class="h-full overflow-y-auto p-4 pb-24">
+                  <app-inmobiliarias-view />
+                </div>
+              }
+              @case ('yo') {
+                <div class="h-full overflow-y-auto p-4 pb-24">
+                  <app-yo-view (editar)="abrirEditar($event)" (borrar)="pedirBorrar($event)" />
+                </div>
+              }
+            }
+
+            <!-- Botón flotante de alta (solo en Mapa y Lista, donde tiene sentido) -->
+            @if (tab() === 'mapa' || tab() === 'lista') {
+              <button
+                type="button"
+                (click)="abrirNuevo(null)"
+                aria-label="Añadir piso"
+                class="absolute bottom-5 right-5 z-[1100] flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-btn text-on-primary shadow-lg shadow-primary/30 transition active:scale-90"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-7 w-7"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
+            }
+          }
+        </main>
+
+        <!-- Pestañas inferiores fijas (solo móvil/tablet) -->
+        <nav
+          class="z-20 grid grid-cols-5 border-t border-border bg-surface/90 px-1 pt-1.5 backdrop-blur-lg lg:hidden"
+          style="padding-bottom: calc(0.25rem + env(safe-area-inset-bottom))"
+        >
+          @for (p of pestanas; track p.id) {
+            <button
+              type="button"
+              (click)="tab.set(p.id)"
+              class="flex flex-col items-center gap-1 py-1.5 text-[11px] font-medium whitespace-nowrap transition"
+              [class.text-primary]="tab() === p.id"
+              [class.text-muted]="tab() !== p.id"
+            >
+              <span
+                class="flex h-7 w-11 items-center justify-center rounded-full text-lg transition"
+                [class.tab-activa]="tab() === p.id"
+              >
+                {{ p.icono }}
+              </span>
+              {{ p.etiqueta }}
             </button>
           }
-        </div>
-      </header>
-
-      <!-- Aviso para importar datos locales antiguos a la cuenta -->
-      @if (migracion.disponible()) {
-        <div class="flex items-center gap-2 border-b border-border bg-primary/10 px-4 py-2 text-sm">
-          <span class="flex-1 text-text">Tienes datos en este navegador. ¿Importarlos a tu cuenta?</span>
-          <button
-            type="button"
-            (click)="migracion.migrar()"
-            [disabled]="migracion.migrando()"
-            class="btn-primario shrink-0 px-3 py-1.5 text-xs"
-          >
-            {{ migracion.migrando() ? 'Importando…' : 'Importar' }}
-          </button>
-          <button
-            type="button"
-            (click)="migracion.disponible.set(false)"
-            aria-label="Descartar aviso"
-            class="shrink-0 text-muted"
-          >
-            <app-icono nombre="x" [tam]="16" />
-          </button>
-        </div>
-      }
-
-      <!-- Contenido -->
-      <main class="relative min-h-0 flex-1">
-        @if (!store.cargado()) {
-          <div class="flex h-full flex-col items-center justify-center gap-3 text-muted">
-            <span class="text-3xl animate-pulse">🏠</span>
-            <span class="text-sm">Cargando tus pisos…</span>
-          </div>
-        } @else {
-        @switch (tab()) {
-          @case ('mapa') {
-            <app-mapa-view
-              class="block h-full"
-              (nuevo)="abrirNuevo($event)"
-              (editar)="abrirEditar($event)"
-              (borrar)="pedirBorrar($event)"
-              (filtrarDistrito)="filtrarPorDistrito()"
-            />
-          }
-          @case ('lista') {
-            <div class="h-full overflow-y-auto p-4 pb-24">
-              <app-lista-view (editar)="abrirEditar($event)" (borrar)="pedirBorrar($event)" />
-            </div>
-          }
-          @case ('favoritos') {
-            <div class="h-full overflow-y-auto p-4 pb-24">
-              <app-favoritos-view (editar)="abrirEditar($event)" (borrar)="pedirBorrar($event)" />
-            </div>
-          }
-          @case ('agencias') {
-            <div class="h-full overflow-y-auto p-4 pb-24">
-              <app-inmobiliarias-view />
-            </div>
-          }
-          @case ('guion') {
-            <div class="h-full overflow-y-auto p-4 pb-24">
-              <app-guion-view />
-            </div>
-          }
-        }
-
-        <!-- Botón flotante de alta (solo en Mapa y Lista, donde tiene sentido) -->
-        @if (tab() === 'mapa' || tab() === 'lista') {
-        <button
-          type="button"
-          (click)="abrirNuevo(null)"
-          aria-label="Añadir piso"
-          class="absolute bottom-5 right-5 z-[1100] flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-btn text-on-primary shadow-lg shadow-primary/30 transition active:scale-90"
-        >
-          <svg viewBox="0 0 24 24" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
-        }
-        }
-      </main>
-
-      <!-- Pestañas inferiores fijas (solo móvil/tablet) -->
-      <nav
-        class="z-20 grid grid-cols-5 border-t border-border bg-surface/90 px-1 pt-1.5 backdrop-blur-lg lg:hidden"
-        style="padding-bottom: calc(0.25rem + env(safe-area-inset-bottom))"
-      >
-        @for (p of pestanas; track p.id) {
-          <button
-            type="button"
-            (click)="tab.set(p.id)"
-            class="flex flex-col items-center gap-1 py-1.5 text-[11px] font-medium whitespace-nowrap transition"
-            [class.text-primary]="tab() === p.id"
-            [class.text-muted]="tab() !== p.id"
-          >
-            <span
-              class="flex h-7 w-11 items-center justify-center rounded-full text-lg transition"
-              [class.tab-activa]="tab() === p.id"
-            >
-              {{ p.icono }}
-            </span>
-            {{ p.etiqueta }}
-          </button>
-        }
-      </nav>
+        </nav>
       </div>
     </div>
 
@@ -248,7 +262,9 @@ interface ConfigPestana {
     @if (pisoBorrar(); as p) {
       <app-confirm-dialog
         titulo="Descartar piso"
-        [mensaje]="'Se eliminará definitivamente «' + p.direccion + '». Esta acción no se puede deshacer.'"
+        [mensaje]="
+          'Se eliminará definitivamente «' + p.direccion + '». Esta acción no se puede deshacer.'
+        "
         textoConfirmar="Descartar"
         (confirmar)="confirmarBorrar()"
         (cancelar)="cancelarBorrar()"
@@ -297,7 +313,7 @@ export class PisosPage {
     { id: 'lista', icono: '📋', etiqueta: 'Lista' },
     { id: 'favoritos', icono: '⭐', etiqueta: 'Favoritos' },
     { id: 'agencias', icono: '🏢', etiqueta: 'Inmob.' },
-    { id: 'guion', icono: '📝', etiqueta: 'Guion' },
+    { id: 'yo', icono: '👤', etiqueta: 'Yo' },
   ];
 
   // --- Formulario ---

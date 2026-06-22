@@ -32,7 +32,10 @@ export class SupabaseAdapter implements StoragePort {
   async guardar<T>(clave: string, valor: T): Promise<void> {
     const { error } = await this.sb
       .from(this.tabla)
-      .upsert({ clave, valor, actualizado_en: new Date().toISOString() }, { onConflict: 'user_id,clave' });
+      .upsert(
+        { clave, valor, actualizado_en: new Date().toISOString() },
+        { onConflict: 'user_id,clave' },
+      );
     if (error) {
       // Propagamos para que el SyncStatusService lo refleje en la UI.
       throw new Error(`Supabase guardar "${clave}": ${error.message}`);

@@ -17,9 +17,7 @@ import { GuionBloque } from '../guion-bloque/guion-bloque';
       <div class="tarjeta flex items-center gap-3 p-4">
         <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold text-text">Tu guion de preguntas</p>
-          <p class="text-xs text-muted">
-            {{ progreso().hechas }}/{{ progreso().total }} marcadas
-          </p>
+          <p class="text-xs text-muted">{{ progreso().hechas }}/{{ progreso().total }} marcadas</p>
           <!-- Barra de progreso -->
           <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
             <div
@@ -29,7 +27,11 @@ import { GuionBloque } from '../guion-bloque/guion-bloque';
           </div>
         </div>
         @if (progreso().hechas > 0) {
-          <button type="button" (click)="store.reiniciar()" class="btn-suave shrink-0 px-4 py-2 text-sm">
+          <button
+            type="button"
+            (click)="store.reiniciar()"
+            class="btn-suave shrink-0 px-4 py-2 text-sm"
+          >
             Reiniciar
           </button>
         }

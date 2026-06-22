@@ -1,4 +1,5 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
+import { provideServiceWorker } from '@angular/service-worker';
 import { USAR_SUPABASE } from './core/config';
 import { LocalStorageAdapter } from './core/persistence/local-storage.adapter';
 import { SupabaseAdapter } from './core/persistence/supabase.adapter';
@@ -25,5 +26,10 @@ export const appConfig: ApplicationConfig = {
     //  Ni los stores ni los componentes se enteran del cambio.
     // ─────────────────────────────────────────────────────────────
     { provide: STORAGE, useClass: USAR_SUPABASE ? SupabaseAdapter : LocalStorageAdapter },
+
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

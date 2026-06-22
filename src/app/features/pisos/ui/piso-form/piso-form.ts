@@ -110,7 +110,8 @@ import {
                   </span>
                 } @else {
                   <span class="mt-1.5 block px-1 text-xs text-muted">
-                    📍 Punto en el mapa: {{ lat() | number: '1.4-4' }}, {{ lng() | number: '1.4-4' }}
+                    📍 Punto en el mapa: {{ lat() | number: '1.4-4' }},
+                    {{ lng() | number: '1.4-4' }}
                   </span>
                 }
               </label>
@@ -147,7 +148,9 @@ import {
                 </label>
               </div>
               @if (!distritoValido()) {
-                <span class="-mt-1 block px-1 text-xs text-danger">El distrito es obligatorio.</span>
+                <span class="-mt-1 block px-1 text-xs text-danger"
+                  >El distrito es obligatorio.</span
+                >
               }
 
               <label class="block">
@@ -162,7 +165,9 @@ import {
                   [class.border-danger]="!urlValida()"
                 />
                 @if (!urlValida()) {
-                  <span class="mt-1 block text-xs text-danger">Debe empezar por http:// o https://</span>
+                  <span class="mt-1 block text-xs text-danger"
+                    >Debe empezar por http:// o https://</span
+                  >
                 }
               </label>
             </div>
@@ -371,59 +376,134 @@ import {
               <div class="grid grid-cols-2 gap-3">
                 <label class="block">
                   <span class="etiqueta">Comunidad (€/mes)</span>
-                  <input type="number" inputmode="numeric" min="0" [value]="gastosComunidad()" (input)="gastosComunidad.set(num($event))" class="campo" />
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    [value]="gastosComunidad()"
+                    (input)="gastosComunidad.set(num($event))"
+                    class="campo"
+                  />
                 </label>
                 <label class="block">
                   <span class="etiqueta">IBI (€/año)</span>
-                  <input type="number" inputmode="numeric" min="0" [value]="ibiAnual()" (input)="ibiAnual.set(num($event))" class="campo" />
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    [value]="ibiAnual()"
+                    (input)="ibiAnual.set(num($event))"
+                    class="campo"
+                  />
                 </label>
                 <label class="block">
                   <span class="etiqueta">Reforma estimada (€)</span>
-                  <input type="number" inputmode="numeric" min="0" step="1000" [value]="reformaEstimada()" (input)="reformaEstimada.set(num($event))" class="campo" />
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    step="1000"
+                    [value]="reformaEstimada()"
+                    (input)="reformaEstimada.set(num($event))"
+                    class="campo"
+                  />
                 </label>
                 <label class="block">
                   <span class="etiqueta">Cert. energético (A–G)</span>
-                  <input type="text" maxlength="1" [value]="certificadoEnergetico()" (input)="certificadoEnergetico.set(valor($event).toUpperCase())" placeholder="—" class="campo uppercase" />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    [value]="certificadoEnergetico()"
+                    (input)="certificadoEnergetico.set(valor($event).toUpperCase())"
+                    placeholder="—"
+                    class="campo uppercase"
+                  />
                 </label>
                 <label class="block">
                   <span class="etiqueta">Metro (min)</span>
-                  <input type="number" inputmode="numeric" min="0" [value]="minutosMetro()" (input)="minutosMetro.set(num($event))" class="campo" />
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    [value]="minutosMetro()"
+                    (input)="minutosMetro.set(num($event))"
+                    class="campo"
+                  />
                 </label>
                 <label class="block">
                   <span class="etiqueta">Bus (min)</span>
-                  <input type="number" inputmode="numeric" min="0" [value]="minutosBus()" (input)="minutosBus.set(num($event))" class="campo" />
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    [value]="minutosBus()"
+                    (input)="minutosBus.set(num($event))"
+                    class="campo"
+                  />
                 </label>
               </div>
 
               <label class="block">
                 <span class="etiqueta">Derramas conocidas</span>
-                <input type="text" [value]="derramas()" (input)="derramas.set(valor($event))" placeholder="Vacío = ninguna" class="campo" />
+                <input
+                  type="text"
+                  [value]="derramas()"
+                  (input)="derramas.set(valor($event))"
+                  placeholder="Vacío = ninguna"
+                  class="campo"
+                />
               </label>
 
               <div class="grid grid-cols-2 gap-2">
                 <label class="flex items-center gap-3 rounded-2xl border border-border px-4 py-3">
-                  <input type="checkbox" [checked]="ocupado()" (change)="ocupado.set(marcado($event))" class="h-5 w-5 accent-primary-btn" />
+                  <input
+                    type="checkbox"
+                    [checked]="ocupado()"
+                    (change)="ocupado.set(marcado($event))"
+                    class="h-5 w-5 accent-primary-btn"
+                  />
                   <span class="text-sm font-medium text-text">Ocupado</span>
                 </label>
                 <label class="flex items-center gap-3 rounded-2xl border border-border px-4 py-3">
-                  <input type="checkbox" [checked]="nudaPropiedad()" (change)="nudaPropiedad.set(marcado($event))" class="h-5 w-5 accent-primary-btn" />
+                  <input
+                    type="checkbox"
+                    [checked]="nudaPropiedad()"
+                    (change)="nudaPropiedad.set(marcado($event))"
+                    class="h-5 w-5 accent-primary-btn"
+                  />
                   <span class="text-sm font-medium text-text">Nuda propiedad</span>
                 </label>
               </div>
 
               <label class="block">
                 <span class="etiqueta">Observaciones legales</span>
-                <input type="text" [value]="observacionesLegales()" (input)="observacionesLegales.set(valor($event))" placeholder="Cargas, ocupación, urbanísticas…" class="campo" />
+                <input
+                  type="text"
+                  [value]="observacionesLegales()"
+                  (input)="observacionesLegales.set(valor($event))"
+                  placeholder="Cargas, ocupación, urbanísticas…"
+                  class="campo"
+                />
               </label>
 
               <div class="grid grid-cols-2 gap-3">
                 <label class="block">
                   <span class="etiqueta">Publicado</span>
-                  <input type="date" [value]="fechaPublicacion()" (input)="fechaPublicacion.set(valor($event))" class="campo" />
+                  <input
+                    type="date"
+                    [value]="fechaPublicacion()"
+                    (input)="fechaPublicacion.set(valor($event))"
+                    class="campo"
+                  />
                 </label>
                 <label class="block">
                   <span class="etiqueta">Última revisión</span>
-                  <input type="date" [value]="fechaUltimaRevision()" (input)="fechaUltimaRevision.set(valor($event))" class="campo" />
+                  <input
+                    type="date"
+                    [value]="fechaUltimaRevision()"
+                    (input)="fechaUltimaRevision.set(valor($event))"
+                    class="campo"
+                  />
                 </label>
               </div>
             </div>
@@ -444,7 +524,9 @@ import {
                     @if (!primero) {
                       <span
                         class="h-0.5 flex-1 rounded transition-colors"
-                        [style.background-color]="i <= indiceFlujo() ? e.color : 'var(--color-border)'"
+                        [style.background-color]="
+                          i <= indiceFlujo() ? e.color : 'var(--color-border)'
+                        "
                       ></span>
                     }
                     <button
@@ -502,6 +584,26 @@ import {
                     </span>
                   }
                 </label>
+                <label class="block">
+                  <span class="etiqueta">Contacto de la cita</span>
+                  <input
+                    type="text"
+                    [value]="contactoCita()"
+                    (input)="contactoCita.set(valor($event))"
+                    placeholder="Nombre del agente, propietario…"
+                    class="campo"
+                  />
+                </label>
+                <label class="block">
+                  <span class="etiqueta">Notas de la cita</span>
+                  <textarea
+                    rows="2"
+                    [value]="notasCita()"
+                    (input)="notasCita.set(valor($event))"
+                    placeholder="Preguntas a hacer, cosas a llevar…"
+                    class="campo resize-none"
+                  ></textarea>
+                </label>
               }
 
               <label class="block">
@@ -520,7 +622,12 @@ import {
 
         <!-- Pie fijo -->
         <footer class="border-t border-border px-4 py-3.5">
-          <button type="button" (click)="onGuardar()" [disabled]="!formValido()" class="btn-primario w-full">
+          <button
+            type="button"
+            (click)="onGuardar()"
+            [disabled]="!formValido()"
+            class="btn-primario w-full"
+          >
             {{ esEditar() ? 'Guardar cambios' : 'Añadir piso' }}
           </button>
         </footer>
@@ -594,6 +701,8 @@ export class PisoForm implements OnInit {
   readonly fechaUltimaRevision = signal('');
   readonly estado = signal<EstadoPipeline>('Interesado');
   readonly fechaCita = signal('');
+  readonly contactoCita = signal('');
+  readonly notasCita = signal('');
   readonly notas = signal('');
   readonly lat = signal(40.4168);
   readonly lng = signal(-3.7038);
@@ -667,6 +776,8 @@ export class PisoForm implements OnInit {
       this.fechaUltimaRevision.set(p.fechaUltimaRevision);
       this.estado.set(p.estado);
       this.fechaCita.set(p.fechaCita ?? '');
+      this.contactoCita.set(p.contactoCita);
+      this.notasCita.set(p.notasCita);
       this.notas.set(p.notas);
       this.lat.set(p.lat);
       this.lng.set(p.lng);
@@ -738,6 +849,8 @@ export class PisoForm implements OnInit {
       fechaUltimaRevision: this.fechaUltimaRevision(),
       estado: this.estado(),
       fechaCita: this.fechaCita().trim() ? this.fechaCita() : undefined,
+      contactoCita: this.contactoCita().trim(),
+      notasCita: this.notasCita().trim(),
       notas: this.notas().trim(),
       lat: this.lat(),
       lng: this.lng(),

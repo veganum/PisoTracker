@@ -74,13 +74,7 @@ export class GeocodingService {
     distrito: Distrito | null;
     barrio: string | null;
   } {
-    const candidatos = [
-      dir.suburb,
-      dir.neighbourhood,
-      dir.quarter,
-      dir.city_district,
-      dir.borough,
-    ]
+    const candidatos = [dir.suburb, dir.neighbourhood, dir.quarter, dir.city_district, dir.borough]
       .filter((c): c is string => !!c)
       .map((c) => c.toLowerCase());
 

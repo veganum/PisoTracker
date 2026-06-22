@@ -59,9 +59,7 @@ import { AuthService } from './auth.service';
           </button>
         </form>
 
-        <p class="mt-4 text-center text-xs text-muted">
-          ¿Sin cuenta? Pídesela al administrador.
-        </p>
+        <p class="mt-4 text-center text-xs text-muted">¿Sin cuenta? Pídesela al administrador.</p>
       </div>
     </div>
   `,

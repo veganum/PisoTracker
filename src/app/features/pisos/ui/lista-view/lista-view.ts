@@ -10,7 +10,13 @@ import {
 import { PisosStore } from '../../data/pisos.store';
 import { ESTADOS_PIPELINE, EstadoPipeline } from '../../models/estado-pipeline';
 import { barriosDe, Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
-import { ESTADOS_PISO, EstadoPiso, Piso, TIPOS_CONTACTO, TipoContacto } from '../../models/piso.model';
+import {
+  ESTADOS_PISO,
+  EstadoPiso,
+  Piso,
+  TIPOS_CONTACTO,
+  TipoContacto,
+} from '../../models/piso.model';
 import { puntuacionPiso } from '../../data/puntuacion.util';
 import { Icono } from '../../../../shared/icono/icono';
 import { PisoCard } from '../piso-card/piso-card';
@@ -42,7 +48,11 @@ import { PisoCard } from '../piso-card/piso-card';
 
       <!-- Filtros -->
       <div class="grid grid-cols-2 gap-2">
-        <select [value]="orden()" (change)="orden.set(valor($event))" class="campo col-span-2 py-2.5 text-sm">
+        <select
+          [value]="orden()"
+          (change)="orden.set(valor($event))"
+          class="campo col-span-2 py-2.5 text-sm"
+        >
           <option value="ninguno">Orden: por defecto</option>
           <option value="precioAsc">Precio ↑ (más barato)</option>
           <option value="precioDesc">Precio ↓ (más caro)</option>
@@ -75,14 +85,22 @@ import { PisoCard } from '../piso-card/piso-card';
           }
         </select>
 
-        <select [value]="fEstado()" (change)="fEstado.set(valor($event))" class="campo py-2.5 text-sm">
+        <select
+          [value]="fEstado()"
+          (change)="fEstado.set(valor($event))"
+          class="campo py-2.5 text-sm"
+        >
           <option value="">Todos los estados</option>
           @for (e of estadosPipeline; track e.valor) {
             <option [value]="e.valor">{{ e.valor }}</option>
           }
         </select>
 
-        <select [value]="fContacto()" (change)="fContacto.set(valor($event))" class="campo py-2.5 text-sm">
+        <select
+          [value]="fContacto()"
+          (change)="fContacto.set(valor($event))"
+          class="campo py-2.5 text-sm"
+        >
           <option value="">Cualquier contacto</option>
           @for (t of tiposContacto; track t) {
             <option [value]="t">{{ t }}</option>

@@ -34,9 +34,20 @@ export interface ConfigEstado {
 export const ESTADOS_PIPELINE: readonly ConfigEstado[] = [
   { valor: 'Interesado', color: '#3b82f6', significado: 'Visto en portal', flujo: true },
   { valor: 'Contactado', color: '#f97316', significado: 'Llamado/escrito, esperando', flujo: true },
-  { valor: 'Agendado', color: '#eab308', significado: 'Cita fijada (requiere fecha y hora)', flujo: true },
+  {
+    valor: 'Agendado',
+    color: '#eab308',
+    significado: 'Cita fijada (requiere fecha y hora)',
+    flujo: true,
+  },
   { valor: 'Visitado', color: '#a855f7', significado: 'Visto en persona', flujo: true },
-  { valor: 'Favorito', color: '#d4af37', significado: 'Candidato serio', flujo: false, icono: '⭐' },
+  {
+    valor: 'Favorito',
+    color: '#d4af37',
+    significado: 'Candidato serio',
+    flujo: false,
+    icono: '⭐',
+  },
   {
     valor: 'Pendiente condiciones',
     color: '#14b8a6',

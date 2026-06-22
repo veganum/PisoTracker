@@ -29,18 +29,14 @@ export class RealtimeService {
     }
     this.canal = this.sb
       .channel('estado-cambios')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'estado' },
-        (payload) => {
-          const fila = (payload.new ?? payload.old) as
-            | { clave?: string; valor?: unknown }
-            | undefined;
-          if (fila?.clave) {
-            this.manejadores.get(fila.clave)?.(fila.valor ?? null);
-          }
-        },
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'estado' }, (payload) => {
+        const fila = (payload.new ?? payload.old) as
+          | { clave?: string; valor?: unknown }
+          | undefined;
+        if (fila?.clave) {
+          this.manejadores.get(fila.clave)?.(fila.valor ?? null);
+        }
+      })
       .subscribe();
   }
 

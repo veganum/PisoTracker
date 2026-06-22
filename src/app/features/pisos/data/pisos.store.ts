@@ -66,6 +66,8 @@ const CAMPOS_NUEVOS_DEFECTO = {
   certificadoEnergetico: '',
   fechaPublicacion: '',
   fechaUltimaRevision: '',
+  contactoCita: '',
+  notasCita: '',
 } satisfies Partial<Piso>;
 
 /**
@@ -189,7 +191,8 @@ export class PisosStore {
       ...new Set([...this.nombresInmobiliarias(), ...guardados.map((c) => c.nombre)]),
     ].sort((a, b) => a.localeCompare(b));
     return nombres.map(
-      (nombre) => guardados.find((c) => c.nombre === nombre) ?? contactoVacio(nombre, 'Inmobiliaria'),
+      (nombre) =>
+        guardados.find((c) => c.nombre === nombre) ?? contactoVacio(nombre, 'Inmobiliaria'),
     );
   });
 

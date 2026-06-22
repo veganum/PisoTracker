@@ -49,7 +49,8 @@ export const CONTACTOS_SEED: Contacto[] = [
     email: 'madrid@kiron.es',
     url: 'https://www.kiron.es',
     valoracion: 4,
-    observaciones: 'Broker vinculado a Tecnocasa. Comparan varias entidades; útil si no quieres ir banco por banco.',
+    observaciones:
+      'Broker vinculado a Tecnocasa. Comparan varias entidades; útil si no quieres ir banco por banco.',
     registradoBdE: true,
     entidades: 'BBVA, Santander, Sabadell, Bankinter',
     financiacionMax: 90,

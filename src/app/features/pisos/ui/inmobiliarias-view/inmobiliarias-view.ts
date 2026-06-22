@@ -58,8 +58,8 @@ import { ContactoCard } from '../contacto-card/contacto-card';
           <p class="text-4xl">{{ esInmo() ? '🏢' : '🏦' }}</p>
           <p class="mt-2 text-sm text-muted">
             @if (esInmo()) {
-              Aún no hay inmobiliarias. Añade una arriba o se detectan al crear
-              pisos con contacto "Inmobiliaria".
+              Aún no hay inmobiliarias. Añade una arriba o se detectan al crear pisos con contacto
+              "Inmobiliaria".
             } @else {
               Aún no hay financieras. Añade una arriba (Kiron, tu banco, un broker…).
             }

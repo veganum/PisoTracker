@@ -72,37 +72,57 @@ import { Piso } from '../../models/piso.model';
 
         <!-- Estado del inmueble + contacto -->
         <div class="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
-          <span class="rounded-lg bg-surface-2 px-2.5 py-1 font-medium text-text ring-1 ring-border">
+          <span
+            class="rounded-lg bg-surface-2 px-2.5 py-1 font-medium text-text ring-1 ring-border"
+          >
             {{ piso().estadoPiso }}
           </span>
-          <span class="rounded-lg bg-surface-2 px-2.5 py-1 font-medium text-text ring-1 ring-border">
+          <span
+            class="rounded-lg bg-surface-2 px-2.5 py-1 font-medium text-text ring-1 ring-border"
+          >
             {{
               piso().tipoContacto === 'Inmobiliaria'
-                ? (piso().inmobiliaria || 'Inmobiliaria')
+                ? piso().inmobiliaria || 'Inmobiliaria'
                 : 'Particular'
             }}
           </span>
           @if (piso().estado === 'Agendado' && piso().fechaCita) {
-            <span class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-medium text-white" [style.background-color]="color()">
+            <span
+              class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 font-medium text-white"
+              [style.background-color]="color()"
+            >
               🗓️ {{ piso().fechaCita | date: 'dd/MM HH:mm' }}
             </span>
           }
         </div>
 
         <!-- Avisos de riesgo / coste -->
-        @if (piso().ocupado || piso().nudaPropiedad || piso().derramas.trim() || piso().observacionesLegales.trim()) {
+        @if (
+          piso().ocupado ||
+          piso().nudaPropiedad ||
+          piso().derramas.trim() ||
+          piso().observacionesLegales.trim()
+        ) {
           <div class="mt-2.5 flex flex-wrap gap-1.5 text-xs">
             @if (piso().ocupado) {
-              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">⚠️ Ocupado</span>
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger"
+                >⚠️ Ocupado</span
+              >
             }
             @if (piso().nudaPropiedad) {
-              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">⚠️ Nuda propiedad</span>
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger"
+                >⚠️ Nuda propiedad</span
+              >
             }
             @if (piso().derramas.trim()) {
-              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">💸 Derrama</span>
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger"
+                >💸 Derrama</span
+              >
             }
             @if (piso().observacionesLegales.trim()) {
-              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger">⚖️ Legal</span>
+              <span class="rounded-lg bg-danger/10 px-2 py-0.5 font-semibold text-danger"
+                >⚖️ Legal</span
+              >
             }
           </div>
         }

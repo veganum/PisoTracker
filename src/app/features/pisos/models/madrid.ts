@@ -38,10 +38,21 @@ export interface DistritoMadrid {
 
 /** Tabla distrito → barrios administrativos. */
 export const DISTRITOS: readonly DistritoMadrid[] = [
-  { nombre: 'Centro', barrios: ['Palacio', 'Embajadores', 'Cortes', 'Justicia', 'Universidad', 'Sol'] },
+  {
+    nombre: 'Centro',
+    barrios: ['Palacio', 'Embajadores', 'Cortes', 'Justicia', 'Universidad', 'Sol'],
+  },
   {
     nombre: 'Arganzuela',
-    barrios: ['Imperial', 'Acacias', 'Chopera', 'Legazpi', 'Delicias', 'Palos de la Frontera', 'Atocha'],
+    barrios: [
+      'Imperial',
+      'Acacias',
+      'Chopera',
+      'Legazpi',
+      'Delicias',
+      'Palos de la Frontera',
+      'Atocha',
+    ],
   },
   {
     nombre: 'Retiro',
@@ -53,11 +64,25 @@ export const DISTRITOS: readonly DistritoMadrid[] = [
   },
   {
     nombre: 'Chamartín',
-    barrios: ['El Viso', 'Prosperidad', 'Ciudad Jardín', 'Hispanoamérica', 'Nueva España', 'Castilla'],
+    barrios: [
+      'El Viso',
+      'Prosperidad',
+      'Ciudad Jardín',
+      'Hispanoamérica',
+      'Nueva España',
+      'Castilla',
+    ],
   },
   {
     nombre: 'Tetuán',
-    barrios: ['Bellas Vistas', 'Cuatro Caminos', 'Castillejos', 'Almenara', 'Valdeacederas', 'Berruguete'],
+    barrios: [
+      'Bellas Vistas',
+      'Cuatro Caminos',
+      'Castillejos',
+      'Almenara',
+      'Valdeacederas',
+      'Berruguete',
+    ],
   },
   {
     nombre: 'Chamberí',
@@ -114,7 +139,15 @@ export const DISTRITOS: readonly DistritoMadrid[] = [
   },
   {
     nombre: 'Usera',
-    barrios: ['Orcasitas', 'Orcasur', 'San Fermín', 'Almendrales', 'Moscardó', 'Zofío', 'Pradolongo'],
+    barrios: [
+      'Orcasitas',
+      'Orcasur',
+      'San Fermín',
+      'Almendrales',
+      'Moscardó',
+      'Zofío',
+      'Pradolongo',
+    ],
   },
   {
     nombre: 'Puente de Vallecas',
@@ -147,11 +180,24 @@ export const DISTRITOS: readonly DistritoMadrid[] = [
   },
   {
     nombre: 'Hortaleza',
-    barrios: ['Palomas', 'Piovera', 'Canillas', 'Pinar del Rey', 'Apóstol Santiago', 'Valdefuentes'],
+    barrios: [
+      'Palomas',
+      'Piovera',
+      'Canillas',
+      'Pinar del Rey',
+      'Apóstol Santiago',
+      'Valdefuentes',
+    ],
   },
   {
     nombre: 'Villaverde',
-    barrios: ['Villaverde Alto-Casco Histórico', 'San Cristóbal', 'Butarque', 'Los Rosales', 'Ángeles'],
+    barrios: [
+      'Villaverde Alto-Casco Histórico',
+      'San Cristóbal',
+      'Butarque',
+      'Los Rosales',
+      'Ángeles',
+    ],
   },
   {
     nombre: 'Villa de Vallecas',
@@ -163,20 +209,17 @@ export const DISTRITOS: readonly DistritoMadrid[] = [
   },
   {
     nombre: 'San Blas-Canillejas',
-    barrios: [
-      'Simancas',
-      'Hellín',
-      'Amposta',
-      'Arcos',
-      'Rosas',
-      'Rejas',
-      'Canillejas',
-      'Salvador',
-    ],
+    barrios: ['Simancas', 'Hellín', 'Amposta', 'Arcos', 'Rosas', 'Rejas', 'Canillejas', 'Salvador'],
   },
   {
     nombre: 'Barajas',
-    barrios: ['Alameda de Osuna', 'Aeropuerto', 'Casco Histórico de Barajas', 'Timón', 'Corralejos'],
+    barrios: [
+      'Alameda de Osuna',
+      'Aeropuerto',
+      'Casco Histórico de Barajas',
+      'Timón',
+      'Corralejos',
+    ],
   },
 ];
 
@@ -190,11 +233,7 @@ export function barriosDe(distrito: Distrito | '' | null | undefined): string[] 
 
 /** Normaliza un texto para comparar sin acentos ni mayúsculas. */
 function normalizar(texto: string): string {
-  return texto
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim();
+  return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
 /**
