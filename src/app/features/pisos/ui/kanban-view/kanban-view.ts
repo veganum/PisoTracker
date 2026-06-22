@@ -17,6 +17,7 @@ interface ColumnaTablero {
   estado: EstadoPipeline;
   color: string;
   pisos: Piso[];
+  precioMedio: number;
 }
 
 @Component({
@@ -53,6 +54,9 @@ interface ColumnaTablero {
               <span class="rounded-full bg-surface px-2 py-0.5 text-xs text-muted">
                 {{ col.pisos.length }}
               </span>
+              @if (col.precioMedio > 0) {
+                <span class="text-xs text-muted">~{{ formatearPrecioCorto(col.precioMedio) }}</span>
+              }
               <svg
                 viewBox="0 0 24 24"
                 class="h-4 w-4 shrink-0 text-muted transition-transform lg:hidden"
@@ -88,8 +92,13 @@ interface ColumnaTablero {
                       {{ piso.direccion }}
                     </p>
                     <p class="mt-0.5 truncate text-xs text-muted">
-                      {{ formatearPrecio(piso.precio) }} · {{ nombreContacto(piso) }}
+                      {{ formatearPrecio(piso.precio) }} · {{ piso.distrito }} · {{ nombreContacto(piso) }}
                     </p>
+                    @if (piso.fechaCita) {
+                      <p class="mt-1 text-xs font-medium" [style.color]="col.color">
+                        📅 {{ formatearCita(piso.fechaCita) }}
+                      </p>
+                    }
                   </button>
                 }
               </div>
@@ -108,11 +117,14 @@ export class KanbanView {
 
   readonly columnas = computed<ColumnaTablero[]>(() => {
     const pisos = this.store.pisos();
-    return ESTADOS_FLUJO.map((cfg) => ({
-      estado: cfg.valor,
-      color: cfg.color,
-      pisos: pisos.filter((p) => p.estado === cfg.valor),
-    }));
+    return ESTADOS_FLUJO.map((cfg) => {
+      const grupo = pisos.filter((p) => p.estado === cfg.valor);
+      const conPrecio = grupo.filter((p) => p.precio > 0);
+      const precioMedio = conPrecio.length
+        ? Math.round(conPrecio.reduce((s, p) => s + p.precio, 0) / conPrecio.length)
+        : 0;
+      return { estado: cfg.valor, color: cfg.color, pisos: grupo, precioMedio };
+    });
   });
 
   readonly totalPisosFlujo = computed(() =>
@@ -147,5 +159,20 @@ export class KanbanView {
     return piso.tipoContacto === 'Inmobiliaria' && piso.inmobiliaria
       ? piso.inmobiliaria
       : 'Particular';
+  }
+
+  /** Precio abreviado para la cabecera: 245.000 → 245k */
+  formatearPrecioCorto(precio: number): string {
+    return precio >= 1000
+      ? Math.round(precio / 1000) + 'k'
+      : precio.toLocaleString('es-ES') + ' €';
+  }
+
+  /** Fecha de cita abreviada: "lun 23 jun · 10:00" */
+  formatearCita(iso: string): string {
+    const d = new Date(iso);
+    const fecha = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+    const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return `${fecha} · ${hora}`;
   }
 }
