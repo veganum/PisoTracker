@@ -81,17 +81,20 @@ interface ColumnaTablero {
                   <button
                     type="button"
                     (click)="editar.emit(piso)"
-                    class="tarjeta w-full border-l-[3px] px-3 py-3.5 text-left transition active:scale-[0.98]"
+                    class="tarjeta w-full border-l-[3px] px-4 py-4 text-left transition active:scale-[0.98]"
                     [style.border-left-color]="col.color"
                   >
                     <p class="truncate text-sm font-semibold text-text">
                       {{ piso.direccion }}
                     </p>
+                    <p class="mt-1.5 text-xs text-muted">
+                      {{ formatearPrecio(piso.precio) }}
+                    </p>
                     <p class="mt-0.5 truncate text-xs text-muted">
-                      {{ formatearPrecio(piso.precio) }} · {{ piso.distrito }} · {{ nombreContacto(piso) }}
+                      {{ piso.distrito }} · {{ nombreContacto(piso) }}
                     </p>
                     @if (piso.fechaCita) {
-                      <p class="mt-1 text-xs font-medium" [style.color]="col.color">
+                      <p class="mt-2 text-xs font-medium" [style.color]="col.color">
                         📅 {{ formatearCita(piso.fechaCita) }}
                       </p>
                     }
