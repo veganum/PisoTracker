@@ -17,7 +17,8 @@ export type NombreIcono =
   | 'plus'
   | 'check'
   | 'chevron-down'
-  | 'layers';
+  | 'layers'
+  | 'eye';
 
 /**
  * Icono SVG monocromo (estilo Lucide) para CONTROLES de la interfaz. Hereda el
@@ -123,6 +124,10 @@ export type NombreIcono =
           />
           <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
           <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+        }
+        @case ('eye') {
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+          <circle cx="12" cy="12" r="3" />
         }
       }
     </svg>

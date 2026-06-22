@@ -6,7 +6,9 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { Icono } from '../../../../shared/icono/icono';
 import { PisosStore } from '../../data/pisos.store';
+import { ToastService } from '../../data/toast.service';
 import {
   ESTADOS_FLUJO,
   EstadoPipeline,
@@ -19,9 +21,16 @@ interface ColumnaTablero {
   pisos: Piso[];
 }
 
+const SIGUIENTE_ESTADO: Partial<Record<EstadoPipeline, EstadoPipeline>> = {
+  Interesado: 'Contactado',
+  Contactado: 'Agendado',
+  Agendado: 'Visitado',
+};
+
 @Component({
   selector: 'app-kanban-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Icono],
   template: `
     @if (totalPisosFlujo() === 0) {
       <div class="tarjeta px-4 py-12 text-center">
@@ -67,7 +76,7 @@ interface ColumnaTablero {
               </svg>
             </button>
 
-            <!-- Cards: ocultas en móvil si colapsado; siempre visibles en desktop -->
+            <!-- Cards -->
             <div
               class="lg:block lg:flex-1 lg:overflow-y-auto"
               [class.hidden]="!expandidos().has(col.estado)"
@@ -78,27 +87,51 @@ interface ColumnaTablero {
                   <p class="py-6 text-center text-xs text-muted">Sin pisos aquí</p>
                 }
                 @for (piso of col.pisos; track piso.id) {
-                  <button
-                    type="button"
-                    (click)="editar.emit(piso)"
-                    class="tarjeta w-full border-l-[3px] px-4 py-5 text-left transition active:scale-[0.98]"
+                  <div
+                    class="tarjeta border-l-[3px]"
                     [style.border-left-color]="col.color"
                   >
-                    <p class="text-sm font-semibold leading-snug text-text">
-                      {{ piso.direccion }}
-                    </p>
-                    <p class="mt-2 text-xs text-muted">
-                      {{ formatearPrecio(piso.precio) }}
-                    </p>
-                    <p class="mt-0.5 text-xs text-muted">
-                      {{ piso.distrito }} · {{ nombreContacto(piso) }}
-                    </p>
-                    @if (piso.fechaCita) {
-                      <p class="mt-2 text-xs font-medium" [style.color]="col.color">
-                        📅 {{ formatearCita(piso.fechaCita) }}
+                    <!-- Cuerpo: tap = avanzar estado -->
+                    <button
+                      type="button"
+                      (click)="avanzarEstado(piso)"
+                      class="w-full px-4 pt-4 pb-3 text-left transition active:scale-[0.98]"
+                    >
+                      <p class="text-sm font-semibold leading-snug text-text">
+                        {{ piso.direccion }}
                       </p>
-                    }
-                  </button>
+                      <p class="mt-2 text-xs text-muted">
+                        {{ formatearPrecio(piso.precio) }}
+                      </p>
+                      <p class="mt-0.5 text-xs text-muted">
+                        {{ piso.distrito }} · {{ nombreContacto(piso) }}
+                      </p>
+                      @if (piso.fechaCita) {
+                        <p class="mt-2 text-xs font-medium" [style.color]="col.color">
+                          📅 {{ formatearCita(piso.fechaCita) }}
+                        </p>
+                      }
+                    </button>
+
+                    <!-- Pie: icono ojo (ver/editar) -->
+                    <div class="flex items-center justify-between border-t border-border px-4 py-2">
+                      @if (col.estado === 'Visitado') {
+                        <span class="text-xs text-muted italic">¿Qué hacemos?</span>
+                      } @else {
+                        <span class="text-xs text-muted">
+                          → {{ siguienteNombre(col.estado) }}
+                        </span>
+                      }
+                      <button
+                        type="button"
+                        (click)="editar.emit(piso)"
+                        class="flex h-7 w-7 items-center justify-center rounded-lg text-muted transition hover:text-text active:scale-90"
+                        aria-label="Ver detalle"
+                      >
+                        <app-icono nombre="eye" [tam]="15" />
+                      </button>
+                    </div>
+                  </div>
                 }
               </div>
             </div>
@@ -107,10 +140,59 @@ interface ColumnaTablero {
         }
       </div>
     }
+
+    <!-- Sheet de decisión para pisos en Visitado -->
+    @if (pisoDecision()) {
+      <div
+        class="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40 backdrop-blur-sm lg:items-center"
+        (click)="pisoDecision.set(null)"
+      >
+        <div
+          class="w-full max-w-lg rounded-t-3xl bg-surface p-6 pb-10 lg:rounded-3xl lg:pb-6"
+          (click)="$event.stopPropagation()"
+        >
+          <p class="mb-1 text-base font-bold text-text">¿Qué hacemos con este piso?</p>
+          <p class="mb-5 truncate text-sm text-muted">{{ pisoDecision()!.direccion }}</p>
+
+          <div class="space-y-2">
+            <button
+              type="button"
+              (click)="aplicarDecision('Favorito')"
+              class="flex w-full items-center gap-3 rounded-2xl bg-surface-2 px-4 py-3.5 text-left transition active:scale-[0.98]"
+            >
+              <span class="text-xl">⭐</span>
+              <div>
+                <p class="text-sm font-semibold text-text">Favorito</p>
+                <p class="text-xs text-muted">Candidato serio</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              (click)="aplicarDecision('Pendiente condiciones')"
+              class="flex w-full items-center gap-3 rounded-2xl bg-surface-2 px-4 py-3.5 text-left transition active:scale-[0.98]"
+            >
+              <span class="text-xl">⏳</span>
+              <div>
+                <p class="text-sm font-semibold text-text">Pendiente condiciones</p>
+                <p class="text-xs text-muted">Esperando bajada de precio o cambio</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              (click)="pisoDecision.set(null)"
+              class="w-full rounded-2xl bg-surface-2 px-4 py-3.5 text-sm font-medium text-muted transition active:scale-[0.98]"
+            >
+              Dejarlo en Visitado
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
 })
 export class KanbanView {
   private readonly store = inject(PisosStore);
+  private readonly toast = inject(ToastService);
 
   readonly editar = output<Piso>();
 
@@ -137,6 +219,33 @@ export class KanbanView {
     ),
   );
 
+  /** Piso esperando decisión tras llegar a Visitado. */
+  readonly pisoDecision = signal<Piso | null>(null);
+
+  avanzarEstado(piso: Piso): void {
+    const siguiente = SIGUIENTE_ESTADO[piso.estado];
+    if (siguiente) {
+      this.store.actualizar({ ...piso, estado: siguiente });
+      // Expandir la columna destino si estaba colapsada
+      const expandidos = new Set(this.expandidos());
+      expandidos.add(siguiente);
+      this.expandidos.set(expandidos);
+      this.toast.mostrar(`Movido a ${siguiente}`);
+    } else {
+      // Está en Visitado → abrir sheet de decisión
+      this.pisoDecision.set(piso);
+    }
+  }
+
+  aplicarDecision(estado: EstadoPipeline): void {
+    const piso = this.pisoDecision();
+    if (piso) {
+      this.store.actualizar({ ...piso, estado });
+      this.toast.mostrar(`Marcado como ${estado}`);
+    }
+    this.pisoDecision.set(null);
+  }
+
   alternarExpandido(estado: EstadoPipeline): void {
     const actual = new Set(this.expandidos());
     if (actual.has(estado)) {
@@ -145,6 +254,10 @@ export class KanbanView {
       actual.add(estado);
     }
     this.expandidos.set(actual);
+  }
+
+  siguienteNombre(estado: EstadoPipeline): string {
+    return SIGUIENTE_ESTADO[estado] ?? '';
   }
 
   formatearPrecio(precio: number): string {
@@ -157,7 +270,6 @@ export class KanbanView {
       : 'Particular';
   }
 
-  /** Fecha de cita abreviada: "lun 23 jun · 10:00" */
   formatearCita(iso: string): string {
     const d = new Date(iso);
     const fecha = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
