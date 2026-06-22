@@ -8,7 +8,7 @@
  * Con `false` la app usa `localStorage` (no requiere login).
  * ───────────────────────────────────────────────────────────────────────
  */
-export const USAR_SUPABASE = false;
+export const USAR_SUPABASE = true;
 
 /** Datos del proyecto Supabase (la `anonKey` es pública por diseño; RLS protege). */
 export const SUPABASE_CONFIG = {
