@@ -11,8 +11,9 @@ import { PisosStore } from '../../data/pisos.store';
 import { colorEstado } from '../../models/estado-pipeline';
 import { Piso } from '../../models/piso.model';
 import { GuionView } from '../guion-view/guion-view';
+import { KanbanView } from '../kanban-view/kanban-view';
 
-type Segmento = 'citas' | 'guion';
+type Segmento = 'citas' | 'tablero' | 'guion';
 
 interface CitaVista {
   piso: Piso;
@@ -41,7 +42,7 @@ function formatearCita(piso: Piso): CitaVista {
 @Component({
   selector: 'app-yo-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [GuionView, Icono],
+  imports: [GuionView, KanbanView, Icono],
   template: `
     <!-- Segmentado -->
     <div class="mb-4 flex gap-1 rounded-xl bg-surface-2 p-1">
@@ -159,6 +160,9 @@ function formatearCita(piso: Piso): CitaVista {
           </div>
         }
       }
+      @case ('tablero') {
+        <app-kanban-view (editar)="editar.emit($event)" />
+      }
       @case ('guion') {
         <app-guion-view />
       }
@@ -175,6 +179,7 @@ export class YoView {
 
   readonly segmentos: { id: Segmento; etiqueta: string }[] = [
     { id: 'citas', etiqueta: '📅 Citas' },
+    { id: 'tablero', etiqueta: '📊 Mi tablero' },
     { id: 'guion', etiqueta: '📝 Guion' },
   ];
 
