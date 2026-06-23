@@ -622,22 +622,43 @@ import {
 
         <!-- Historial de estados (solo en edición y si hay entradas) -->
         @if (esEditar() && pisoInicial()!.historialEstados.length) {
-          <section class="px-4 pb-4">
-            <h3 class="etiqueta mb-3">Historial</h3>
-            <div class="relative pl-4">
-              <!-- Línea vertical -->
-              <div class="absolute left-1.5 top-1 bottom-1 w-px bg-border"></div>
-              @for (entrada of pisoInicial()!.historialEstados; track entrada.fecha; let last = $last) {
-                <div class="relative mb-3 last:mb-0">
-                  <span
-                    class="absolute -left-[11px] top-1 h-2.5 w-2.5 rounded-full border-2 border-surface"
-                    [style.background-color]="colorDeEstado(entrada.estado)"
-                  ></span>
-                  <p class="text-sm font-semibold text-text">{{ entrada.estado }}</p>
-                  <p class="text-xs text-muted">{{ formatearFechaHistorial(entrada.fecha) }}</p>
-                </div>
-              }
-            </div>
+          <section class="border-t border-border">
+            <!-- Cabecera colapsable -->
+            <button
+              type="button"
+              (click)="historialExpandido.set(!historialExpandido())"
+              class="flex w-full items-center justify-between px-4 py-3 text-left transition"
+            >
+              <span class="etiqueta">
+                Historial · {{ pisoInicial()!.historialEstados.length }}
+              </span>
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4 shrink-0 text-muted transition-transform"
+                [class.rotate-180]="historialExpandido()"
+                fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            <!-- Contenido -->
+            @if (historialExpandido()) {
+              <div class="relative mx-4 mb-4 pl-4">
+                <div class="absolute left-1.5 top-1 bottom-1 w-px bg-border"></div>
+                @for (entrada of pisoInicial()!.historialEstados; track entrada.fecha) {
+                  <div class="relative mb-3 last:mb-0">
+                    <span
+                      class="absolute -left-[11px] top-1 h-2.5 w-2.5 rounded-full border-2 border-surface"
+                      [style.background-color]="colorDeEstado(entrada.estado)"
+                    ></span>
+                    <p class="text-sm font-semibold text-text">{{ entrada.estado }}</p>
+                    <p class="text-xs text-muted">{{ formatearFechaHistorial(entrada.fecha) }}</p>
+                  </div>
+                }
+              </div>
+            }
           </section>
         }
 
@@ -671,6 +692,7 @@ export class PisoForm implements OnInit {
 
   /** Indica que se está resolviendo la dirección del punto del mapa. */
   readonly buscandoDireccion = signal(false);
+  readonly historialExpandido = signal(false);
 
   /** Inmobiliarias ya conocidas (detectadas + creadas a mano) para sugerir. */
   readonly inmobiliariasExistentes = this.store.nombresInmobiliariasSugeridas;

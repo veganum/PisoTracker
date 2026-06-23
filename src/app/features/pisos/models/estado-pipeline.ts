@@ -36,7 +36,7 @@ export const ESTADOS_PIPELINE: readonly ConfigEstado[] = [
   { valor: 'Contactado', color: '#f97316', significado: 'Llamado/escrito, esperando', flujo: true },
   {
     valor: 'Agendado',
-    color: '#eab308',
+    color: '#22c55e',
     significado: 'Cita fijada (requiere fecha y hora)',
     flujo: true,
   },
