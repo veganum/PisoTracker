@@ -1,6 +1,12 @@
 import { Distrito } from './madrid';
 import { EstadoPipeline } from './estado-pipeline';
 
+export interface EntradaHistorial {
+  estado: EstadoPipeline;
+  /** Fecha ISO del momento del cambio. */
+  fecha: string;
+}
+
 /** Estado material del inmueble. */
 export type EstadoPiso = 'Listo para entrar' | 'Reforma parcial' | 'Reforma total';
 
@@ -80,6 +86,8 @@ export interface Piso {
   /** Notas específicas de la cita (preguntas a hacer, cosas a llevar…). */
   notasCita: string;
   notas: string;
+  /** Registro cronológico de cambios de estado. */
+  historialEstados: EntradaHistorial[];
 
   // --- Mapa ---
   lat: number;

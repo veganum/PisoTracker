@@ -620,6 +620,27 @@ import {
           </section>
         </div>
 
+        <!-- Historial de estados (solo en edición y si hay entradas) -->
+        @if (esEditar() && pisoInicial()!.historialEstados.length) {
+          <section class="px-4 pb-4">
+            <h3 class="etiqueta mb-3">Historial</h3>
+            <div class="relative pl-4">
+              <!-- Línea vertical -->
+              <div class="absolute left-1.5 top-1 bottom-1 w-px bg-border"></div>
+              @for (entrada of pisoInicial()!.historialEstados; track entrada.fecha; let last = $last) {
+                <div class="relative mb-3 last:mb-0">
+                  <span
+                    class="absolute -left-[11px] top-1 h-2.5 w-2.5 rounded-full border-2 border-surface"
+                    [style.background-color]="colorDeEstado(entrada.estado)"
+                  ></span>
+                  <p class="text-sm font-semibold text-text">{{ entrada.estado }}</p>
+                  <p class="text-xs text-muted">{{ formatearFechaHistorial(entrada.fecha) }}</p>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
         <!-- Pie fijo -->
         <footer class="border-t border-border px-4 py-3.5">
           <button
@@ -852,10 +873,21 @@ export class PisoForm implements OnInit {
       contactoCita: this.contactoCita().trim(),
       notasCita: this.notasCita().trim(),
       notas: this.notas().trim(),
+      historialEstados: base?.historialEstados ?? [],
       lat: this.lat(),
       lng: this.lng(),
     };
     this.guardar.emit(piso);
+  }
+
+  colorDeEstado(estado: EstadoPipeline): string {
+    return colorEstado(estado);
+  }
+
+  formatearFechaHistorial(iso: string): string {
+    return new Date(iso).toLocaleDateString('es-ES', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    });
   }
 
   /** Elige una inmobiliaria existente del desplegable. */

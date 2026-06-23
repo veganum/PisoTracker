@@ -68,6 +68,7 @@ const CAMPOS_NUEVOS_DEFECTO = {
   fechaUltimaRevision: '',
   contactoCita: '',
   notasCita: '',
+  historialEstados: [],
 } satisfies Partial<Piso>;
 
 /**
@@ -211,15 +212,30 @@ export class PisosStore {
   // --- Mutaciones de pisos ---
 
   añadir(piso: Piso): void {
-    this.pisos.update((lista) => [...lista, piso]);
+    const pisoConHistorial: Piso = {
+      ...piso,
+      historialEstados: [{ estado: piso.estado, fecha: new Date().toISOString() }],
+    };
+    this.pisos.update((lista) => [...lista, pisoConHistorial]);
   }
 
   actualizar(piso: Piso): void {
     const anterior = this.pisos().find((p) => p.id === piso.id);
-    const pisoFinal =
-      anterior?.estado === 'Agendado' && piso.estado !== 'Agendado'
-        ? { ...piso, fechaCita: undefined }
-        : piso;
+    let pisoFinal = piso;
+    // Limpiar cita al salir de Agendado
+    if (anterior?.estado === 'Agendado' && piso.estado !== 'Agendado') {
+      pisoFinal = { ...pisoFinal, fechaCita: undefined };
+    }
+    // Registrar cambio de estado en el historial
+    if (anterior && anterior.estado !== piso.estado) {
+      pisoFinal = {
+        ...pisoFinal,
+        historialEstados: [
+          ...(pisoFinal.historialEstados ?? []),
+          { estado: piso.estado, fecha: new Date().toISOString() },
+        ],
+      };
+    }
     this.pisos.update((lista) => lista.map((p) => (p.id === pisoFinal.id ? pisoFinal : p)));
   }
 
