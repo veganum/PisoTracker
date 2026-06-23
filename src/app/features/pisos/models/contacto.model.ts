@@ -3,11 +3,6 @@ import { Distrito } from './madrid';
 /** Tipo de entidad de contacto. */
 export type TipoContactoEntidad = 'Inmobiliaria' | 'Financiera';
 
-export const TIPOS_CONTACTO_ENTIDAD: readonly TipoContactoEntidad[] = [
-  'Inmobiliaria',
-  'Financiera',
-];
-
 /** Unidad de los honorarios (euros o porcentaje). */
 export type UnidadHonorarios = '€' | '%';
 
