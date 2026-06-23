@@ -187,7 +187,7 @@ export class YoView {
   readonly citas = computed<CitaVista[]>(() =>
     this.store
       .pisos()
-      .filter((p) => !!p.fechaCita)
+      .filter((p) => p.estado === 'Agendado' && !!p.fechaCita)
       .sort((a, b) => (a.fechaCita ?? '').localeCompare(b.fechaCita ?? ''))
       .map((p) => formatearCita(p)),
   );
