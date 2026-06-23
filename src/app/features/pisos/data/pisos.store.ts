@@ -215,7 +215,12 @@ export class PisosStore {
   }
 
   actualizar(piso: Piso): void {
-    this.pisos.update((lista) => lista.map((p) => (p.id === piso.id ? piso : p)));
+    const anterior = this.pisos().find((p) => p.id === piso.id);
+    const pisoFinal =
+      anterior?.estado === 'Agendado' && piso.estado !== 'Agendado'
+        ? { ...piso, fechaCita: undefined }
+        : piso;
+    this.pisos.update((lista) => lista.map((p) => (p.id === pisoFinal.id ? pisoFinal : p)));
   }
 
   borrar(id: string): void {
