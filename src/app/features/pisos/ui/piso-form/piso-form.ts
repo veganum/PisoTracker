@@ -627,18 +627,39 @@ import {
             <button
               type="button"
               (click)="historialExpandido.set(!historialExpandido())"
-              class="flex w-full items-center justify-between px-4 py-3 text-left transition"
+              class="flex w-full items-center gap-2.5 px-4 py-3 text-left transition"
             >
-              <span class="etiqueta">
-                Historial · {{ pisoInicial()!.historialEstados.length }}
+              <!-- Icono reloj -->
+              <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 text-muted" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+
+              <span class="etiqueta">Historial</span>
+
+              <!-- Puntos de color: progresión de estados de un vistazo -->
+              <span class="flex items-center gap-1">
+                @for (entrada of pisoInicial()!.historialEstados; track entrada.fecha) {
+                  <span
+                    class="h-2 w-2 rounded-full"
+                    [style.background-color]="colorDeEstado(entrada.estado)"
+                    [attr.title]="entrada.estado"
+                  ></span>
+                }
               </span>
-              <svg
-                viewBox="0 0 24 24"
-                class="h-4 w-4 shrink-0 text-muted transition-transform"
+
+              <!-- Badge contador -->
+              <span class="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">
+                {{ pisoInicial()!.historialEstados.length }}
+              </span>
+
+              <!-- Chevron -->
+              <svg viewBox="0 0 24 24"
+                class="ml-auto h-4 w-4 shrink-0 text-muted transition-transform"
                 [class.rotate-180]="historialExpandido()"
                 fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"
-              >
+                stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </button>
