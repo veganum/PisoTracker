@@ -36,13 +36,17 @@ const MAX_SELECCION = 3;
 
         @for (fav of favoritos(); track fav.piso.id; let i = $index) {
           <div class="space-y-1.5">
-            <div class="relative">
-              <!-- Círculo de selección -->
+            <!-- Ring visible cuando está seleccionado; circle en esquina izquierda (el badge de estado ocupa la derecha) -->
+            <div
+              class="relative rounded-3xl transition-all"
+              [class.ring-2]="estaSeleccionado(fav.piso.id)"
+              [class.ring-primary]="estaSeleccionado(fav.piso.id)"
+            >
               <button
                 type="button"
                 (click)="alternarSeleccion(fav.piso.id)"
                 [disabled]="!puedeSeleccionar(fav.piso.id)"
-                class="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 transition"
+                class="absolute left-2.5 top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 transition"
                 [class.border-primary]="estaSeleccionado(fav.piso.id)"
                 [class.bg-primary]="estaSeleccionado(fav.piso.id)"
                 [class.border-border]="!estaSeleccionado(fav.piso.id)"
@@ -51,7 +55,7 @@ const MAX_SELECCION = 3;
                 [attr.aria-label]="estaSeleccionado(fav.piso.id) ? 'Deseleccionar' : 'Seleccionar para comparar'"
               >
                 @if (estaSeleccionado(fav.piso.id)) {
-                  <svg viewBox="0 0 24 24" class="h-4 w-4 text-white" fill="none"
+                  <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-white" fill="none"
                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
