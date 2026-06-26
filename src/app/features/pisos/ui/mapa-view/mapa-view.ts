@@ -214,6 +214,7 @@ export class MapaView {
             this.ubicacion.ubicar(lat, lng).then((loc) => {
               if (loc && loc.distrito === distrito) {
                 this.store.barrioMapa.set(loc.barrio);
+                this.store.fBarrio.set(loc.barrio);
               }
             });
           });

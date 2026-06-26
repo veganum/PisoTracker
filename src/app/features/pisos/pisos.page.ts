@@ -273,8 +273,12 @@ export class PisosPage {
   // Estado del diálogo de confirmación
   readonly pisoBorrar = signal<Piso | null>(null);
 
-  /** Al pulsar un distrito en el mapa: salta a la Lista (el filtro va por el store). */
+  /** Al pulsar un distrito en el mapa: aplica el filtro y salta a la Lista. */
   filtrarPorDistrito(): void {
+    const distrito = this.store.distritoMapa();
+    if (distrito) {
+      this.store.cambiarDistrito(distrito);
+    }
     this.tab.set('lista');
   }
 

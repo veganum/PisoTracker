@@ -2,10 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   output,
-  signal,
 } from '@angular/core';
 import { PisosStore } from '../../data/pisos.store';
 import { ESTADOS_PIPELINE } from '../../models/estado-pipeline';
@@ -149,20 +147,6 @@ export class ListaView {
 
   readonly editar = output<Piso>();
   readonly borrar = output<Piso>();
-
-  constructor() {
-    // Al llegar desde el mapa con un distrito pulsado, lo aplicamos al filtro.
-    const delMapa = this.store.distritoMapa();
-    if (delMapa) {
-      this.store.fDistrito.set(delMapa);
-    }
-    effect(() => {
-      const barrio = this.store.barrioMapa();
-      if (barrio) {
-        this.store.fBarrio.set(barrio);
-      }
-    });
-  }
 
   readonly distritos = DISTRITOS_NOMBRES;
   readonly estadosPipeline = ESTADOS_PIPELINE;
