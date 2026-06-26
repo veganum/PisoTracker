@@ -142,7 +142,7 @@ interface ConfigPestana {
                   (nuevo)="abrirNuevo($event)"
                   (editar)="abrirEditar($event)"
                   (borrar)="pedirBorrar($event)"
-                  (filtrarDistrito)="filtrarPorDistrito()"
+                  (filtrarDistrito)="filtrarPorDistrito($event)"
                 />
               }
               @case ('lista') {
@@ -274,8 +274,7 @@ export class PisosPage {
   readonly pisoBorrar = signal<Piso | null>(null);
 
   /** Al pulsar un distrito en el mapa: aplica el filtro y salta a la Lista. */
-  filtrarPorDistrito(): void {
-    const distrito = this.store.distritoMapa();
+  filtrarPorDistrito(distrito: string): void {
     if (distrito) {
       this.store.cambiarDistrito(distrito);
     }
