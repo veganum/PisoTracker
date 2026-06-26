@@ -36,72 +36,68 @@ import { PisoCard } from '../piso-card/piso-card';
       <!-- Filtros -->
       <div class="grid grid-cols-2 gap-2">
         <select
-          [value]="store.orden()"
           (change)="store.orden.set(valor($event))"
           class="campo col-span-2 py-2.5 text-sm"
         >
-          <option value="ninguno">Orden: por defecto</option>
-          <option value="precioAsc">Precio ↑ (más barato)</option>
-          <option value="precioDesc">Precio ↓ (más caro)</option>
-          <option value="precioM2">€/m² ↑</option>
-          <option value="metrosDesc">Metros ↓ (más grande)</option>
-          <option value="puntuacionDesc">Puntuación ↓</option>
-          <option value="cita">Fecha de cita</option>
+          <option value="ninguno" [selected]="store.orden() === 'ninguno'">Orden: por defecto</option>
+          <option value="precioAsc" [selected]="store.orden() === 'precioAsc'">Precio ↑ (más barato)</option>
+          <option value="precioDesc" [selected]="store.orden() === 'precioDesc'">Precio ↓ (más caro)</option>
+          <option value="precioM2" [selected]="store.orden() === 'precioM2'">€/m² ↑</option>
+          <option value="metrosDesc" [selected]="store.orden() === 'metrosDesc'">Metros ↓ (más grande)</option>
+          <option value="puntuacionDesc" [selected]="store.orden() === 'puntuacionDesc'">Puntuación ↓</option>
+          <option value="cita" [selected]="store.orden() === 'cita'">Fecha de cita</option>
         </select>
 
         <select
-          [value]="store.fDistrito()"
           (change)="store.cambiarDistrito(valor($event))"
           class="campo py-2.5 text-sm"
         >
-          <option value="">Todos los distritos</option>
+          <option value="" [selected]="!store.fDistrito()">Todos los distritos</option>
           @for (d of distritos; track d) {
-            <option [value]="d">{{ d }}</option>
+            <option [value]="d" [selected]="store.fDistrito() === d">{{ d }}</option>
           }
         </select>
 
         <select
-          [value]="store.fBarrio()"
           (change)="store.fBarrio.set(valor($event))"
           [disabled]="barriosFiltro().length === 0"
           class="campo py-2.5 text-sm disabled:opacity-50"
         >
-          <option value="">{{ store.fDistrito() ? 'Todos los barrios' : 'Elige distrito' }}</option>
+          <option value="" [selected]="!store.fBarrio()">
+            {{ store.fDistrito() ? 'Todos los barrios' : 'Elige distrito' }}
+          </option>
           @for (b of barriosFiltro(); track b) {
-            <option [value]="b">{{ b }}</option>
+            <option [value]="b" [selected]="store.fBarrio() === b">{{ b }}</option>
           }
         </select>
 
         <select
-          [value]="store.fEstado()"
           (change)="store.fEstado.set(valor($event))"
           class="campo py-2.5 text-sm"
         >
-          <option value="">Todos los estados</option>
+          <option value="" [selected]="!store.fEstado()">Todos los estados</option>
           @for (e of estadosPipeline; track e.valor) {
-            <option [value]="e.valor">{{ e.valor }}</option>
+            <option [value]="e.valor" [selected]="store.fEstado() === e.valor">{{ e.valor }}</option>
           }
         </select>
 
         <select
-          [value]="store.fContacto()"
           (change)="store.fContacto.set(valor($event))"
           class="campo py-2.5 text-sm"
         >
-          <option value="">Cualquier contacto</option>
+          <option value="" [selected]="!store.fContacto()">Cualquier contacto</option>
           @for (t of tiposContacto; track t) {
-            <option [value]="t">{{ t }}</option>
+            <option [value]="t" [selected]="store.fContacto() === t">{{ t }}</option>
           }
         </select>
 
         <select
-          [value]="store.fEstadoPiso()"
           (change)="store.fEstadoPiso.set(valor($event))"
           class="campo col-span-2 py-2.5 text-sm"
         >
-          <option value="">Cualquier reforma</option>
+          <option value="" [selected]="!store.fEstadoPiso()">Cualquier reforma</option>
           @for (e of estadosPiso; track e) {
-            <option [value]="e">{{ e }}</option>
+            <option [value]="e" [selected]="store.fEstadoPiso() === e">{{ e }}</option>
           }
         </select>
       </div>
