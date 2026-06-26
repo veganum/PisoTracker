@@ -47,11 +47,12 @@ function construirFilas(pisos: Piso[], puntos: number[]): FilaComparativa[] {
     color: coloresPrecios[i],
   })));
 
-  const pm2s = pisos.map((p) => (p.precio > 0 && p.metros > 0 ? Math.round(p.precio / p.metros) : 0));
-  const coloresPm2 = colorearNumericos(pm2s, true);
-  fila('€/m²', pisos.map((p, i) => ({
+  const pm2s = pisos.map((p) =>
+    p.precio > 0 && p.metros > 0 ? Math.round(p.precio / p.metros) : 0,
+  );
+  fila('€/m²', pisos.map((_p, i) => ({
     texto: pm2s[i] > 0 ? pm2s[i].toLocaleString('es-ES') + ' €' : '—',
-    color: coloresPm2[i],
+    color: colorearNumericos(pm2s, true)[i],
   })));
 
   const coloresMetros = colorearNumericos(pisos.map((p) => p.metros), false);
@@ -67,8 +68,8 @@ function construirFilas(pisos: Piso[], puntos: number[]): FilaComparativa[] {
   })));
 
   fila('Planta', neutros(pisos.map((p) => {
-    const planta = p.planta === 0 ? 'Baja' : p.planta < 0 ? 'Sótano' : `${p.planta}ª`;
-    return `${planta} · ${p.ascensor ? 'con ascensor' : 'sin ascensor'}`;
+    const pl = p.planta === 0 ? 'Baja' : p.planta < 0 ? 'Sótano' : `${p.planta}ª`;
+    return `${pl} · ${p.ascensor ? '🛗' : '🚶'}`;
   })));
 
   const ordenReforma: Record<string, number> = {
@@ -76,7 +77,10 @@ function construirFilas(pisos: Piso[], puntos: number[]): FilaComparativa[] {
     'Reforma parcial': 2,
     'Reforma total': 1,
   };
-  const coloresReforma = colorearNumericos(pisos.map((p) => ordenReforma[p.estadoPiso] ?? 2), false);
+  const coloresReforma = colorearNumericos(
+    pisos.map((p) => ordenReforma[p.estadoPiso] ?? 2),
+    false,
+  );
   fila('Reforma', pisos.map((p, i) => ({ texto: p.estadoPiso, color: coloresReforma[i] })));
 
   const coloresComunidad = colorearNumericos(pisos.map((p) => p.gastosComunidad), true);
@@ -111,57 +115,93 @@ function construirFilas(pisos: Piso[], puntos: number[]): FilaComparativa[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icono],
   template: `
-    <div class="fixed inset-0 z-[2000] flex flex-col bg-surface">
+    <!-- Backdrop -->
+    <div
+      class="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40 backdrop-blur-sm lg:items-center"
+      (click)="cerrar.emit()"
+    >
+      <!-- Sheet: sube desde abajo en móvil, centrado en desktop -->
+      <div
+        class="animar-sheet flex max-h-[92vh] w-full flex-col rounded-t-3xl bg-surface lg:max-w-2xl lg:rounded-3xl"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Handle + cabecera -->
+        <div class="shrink-0 px-4 pb-4 pt-3">
+          <!-- Handle (solo móvil) -->
+          <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-border lg:hidden"></div>
 
-      <header class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-        <h2 class="text-base font-bold text-text">📊 Comparativa</h2>
-        <button
-          type="button"
-          (click)="cerrar.emit()"
-          class="flex h-8 w-8 items-center justify-center rounded-xl text-muted transition active:scale-90"
-          aria-label="Cerrar comparativa"
-        >
-          <app-icono nombre="x" [tam]="18" />
-        </button>
-      </header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-text">📊 Comparativa</h2>
+            <button
+              type="button"
+              (click)="cerrar.emit()"
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-muted transition active:scale-90"
+              aria-label="Cerrar"
+            >
+              <app-icono nombre="x" [tam]="16" />
+            </button>
+          </div>
 
-      <div class="flex-1 overflow-auto">
-        <table class="w-full border-collapse text-sm">
-          <thead class="sticky top-0 z-10 bg-surface-2">
-            <tr>
-              <th class="w-28 border-b border-border px-3 py-2.5 text-left text-xs font-semibold text-muted">
-                Campo
-              </th>
-              @for (piso of pisos(); track piso.id) {
-                <th class="border-b border-border px-3 py-2.5 text-left text-xs font-semibold text-text">
+          <!-- Chips identificadores de cada piso -->
+          <div class="mt-3 flex gap-2 overflow-x-auto pb-0.5">
+            @for (piso of pisos(); track piso.id; let i = $index) {
+              <div class="flex shrink-0 items-center gap-1.5 rounded-2xl bg-surface-2 px-3 py-1.5 ring-1 ring-border">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                  {{ letras[i] }}
+                </span>
+                <span class="max-w-[160px] truncate text-xs font-semibold text-text">
                   {{ piso.direccion }}
-                </th>
-              }
-            </tr>
-          </thead>
+                </span>
+              </div>
+            }
+          </div>
+        </div>
 
-          <tbody>
-            @for (fila of filas(); track fila.etiqueta; let par = $even) {
-              <tr [class.bg-surface-2]="par">
-                <td class="border-b border-border/50 px-3 py-2.5 text-xs font-medium text-muted">
-                  {{ fila.etiqueta }}
-                </td>
+        <!-- Separador -->
+        <div class="h-px shrink-0 bg-border"></div>
+
+        <!-- Filas de comparación -->
+        <div class="flex-1 overflow-y-auto px-3 py-3">
+          @for (fila of filas(); track fila.etiqueta; let par = $even) {
+            <div
+              class="flex items-center gap-3 rounded-2xl px-3 py-3 transition"
+              [class.bg-surface-2]="par"
+            >
+              <!-- Etiqueta -->
+              <span class="w-24 shrink-0 text-xs font-medium text-muted leading-tight">
+                {{ fila.etiqueta }}
+              </span>
+
+              <!-- Valores lado a lado -->
+              <div class="flex flex-1 gap-2">
                 @for (val of fila.valores; track $index) {
-                  <td
-                    class="border-b border-border/50 px-3 py-2.5 text-sm font-semibold"
+                  <div
+                    class="flex flex-1 items-center justify-center rounded-xl px-2 py-2 text-xs font-semibold text-center leading-tight"
                     [class.bg-success/10]="val.color === 'verde'"
                     [class.text-success]="val.color === 'verde'"
                     [class.bg-danger/10]="val.color === 'rojo'"
                     [class.text-danger]="val.color === 'rojo'"
                     [class.text-text]="val.color === 'neutro'"
+                    [class.text-muted]="val.texto === '—'"
                   >
                     {{ val.texto }}
-                  </td>
+                  </div>
                 }
-              </tr>
-            }
-          </tbody>
-        </table>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Pie con botón cerrar (accesibilidad móvil) -->
+        <div class="shrink-0 px-4 pb-8 pt-3 lg:pb-4">
+          <button
+            type="button"
+            (click)="cerrar.emit()"
+            class="btn-suave w-full text-sm"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -171,5 +211,6 @@ export class ComparativaModal {
   readonly puntos = input.required<number[]>();
   readonly cerrar = output<void>();
 
+  readonly letras = ['A', 'B', 'C'];
   readonly filas = computed(() => construirFilas(this.pisos(), this.puntos()));
 }
