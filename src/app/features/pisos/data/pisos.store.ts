@@ -3,6 +3,8 @@ import { STORAGE } from '../../../core/persistence/storage.token';
 import { RealtimeService } from '../../../core/supabase/realtime.service';
 import { Contacto, contactoVacio, TipoContactoEntidad } from '../models/contacto.model';
 import { Distrito, DISTRITOS_NOMBRES } from '../models/madrid';
+import type { EstadoPipeline } from '../models/estado-pipeline';
+import type { EstadoPiso, TipoContacto } from '../models/piso.model';
 import { Piso } from '../models/piso.model';
 import { CONTACTOS_SEED } from './contactos.seed';
 import { PISOS_SEED } from './pisos.seed';
@@ -158,6 +160,74 @@ export class PisosStore {
     });
 
     void this.inicializar();
+  }
+
+  // --- Filtros de la Lista (persisten entre cambios de pestaña) ---
+
+  readonly fDistrito = signal('');
+  readonly fBarrio = signal('');
+  readonly fEstado = signal('');
+  readonly fContacto = signal('');
+  readonly fEstadoPiso = signal('');
+  readonly busqueda = signal('');
+  readonly orden = signal('ninguno');
+
+  readonly numFiltros = computed(() =>
+    [
+      this.fDistrito(),
+      this.fBarrio(),
+      this.fEstado(),
+      this.fContacto(),
+      this.fEstadoPiso(),
+      this.busqueda().trim(),
+      this.orden() !== 'ninguno' ? '1' : '',
+    ].filter(Boolean).length,
+  );
+
+  readonly hayFiltros = computed(() => this.numFiltros() > 0);
+
+  /** Pisos tras aplicar los filtros activos (sin ordenar). El mapa lo usa para sincronizar marcadores. */
+  readonly pisosFiltrados = computed(() => {
+    const distrito = this.fDistrito();
+    const barrio = this.fBarrio();
+    const estado = this.fEstado() as EstadoPipeline | '';
+    const contacto = this.fContacto() as TipoContacto | '';
+    const estadoPiso = this.fEstadoPiso() as EstadoPiso | '';
+    const q = this.busqueda().trim().toLowerCase();
+
+    if (!distrito && !barrio && !estado && !contacto && !estadoPiso && !q) {
+      return this.pisos();
+    }
+    return this.pisos().filter((p) => {
+      if (distrito && p.distrito !== distrito) return false;
+      if (barrio && p.barrio !== barrio) return false;
+      if (estado && p.estado !== estado) return false;
+      if (contacto && p.tipoContacto !== contacto) return false;
+      if (estadoPiso && p.estadoPiso !== estadoPiso) return false;
+      if (q) {
+        const texto = [p.direccion, p.distrito, p.barrio, p.inmobiliaria, p.notas]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        if (!texto.includes(q)) return false;
+      }
+      return true;
+    });
+  });
+
+  cambiarDistrito(valor: string): void {
+    this.fDistrito.set(valor);
+    this.fBarrio.set('');
+  }
+
+  limpiarFiltros(): void {
+    this.fDistrito.set('');
+    this.fBarrio.set('');
+    this.fEstado.set('');
+    this.fContacto.set('');
+    this.fEstadoPiso.set('');
+    this.busqueda.set('');
+    this.orden.set('ninguno');
   }
 
   // --- Derivados (computed) ---

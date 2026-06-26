@@ -126,9 +126,9 @@ export class MapaView {
     // Inicializa Leaflet cuando el DOM del componente ya está pintado.
     afterNextRender(() => this.inicializarMapa());
 
-    // Redibuja los marcadores ante cualquier cambio en la lista de pisos.
+    // Redibuja los marcadores cuando cambian los pisos o los filtros activos.
     effect(() => {
-      const pisos = this.store.pisos();
+      const pisos = this.store.pisosFiltrados();
       if (this.mapa) {
         this.redibujarMarcadores(pisos);
       }
@@ -184,7 +184,9 @@ export class MapaView {
       return;
     }
     if (mostrar) {
-      this.capaDistritos ??= await this.cargarDistritos();
+      if (!this.capaDistritos) {
+        this.capaDistritos = await this.cargarDistritos();
+      }
       this.capaDistritos?.addTo(this.mapa);
     } else if (this.capaDistritos) {
       this.mapa.removeLayer(this.capaDistritos);

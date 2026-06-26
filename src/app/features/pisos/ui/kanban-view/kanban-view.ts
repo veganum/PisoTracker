@@ -202,15 +202,14 @@ export class KanbanView {
     this.columnas().reduce((sum, col) => sum + col.pisos.length, 0),
   );
 
-  readonly expandidos = signal<Set<EstadoPipeline>>(
-    new Set(
-      ESTADOS_FLUJO.filter((cfg) =>
-        inject(PisosStore)
-          .pisos()
-          .some((p) => p.estado === cfg.valor),
-      ).map((cfg) => cfg.valor),
-    ),
-  );
+  readonly expandidos = signal<Set<EstadoPipeline>>(new Set());
+
+  constructor() {
+    const conPisos = ESTADOS_FLUJO.filter((cfg) =>
+      this.store.pisos().some((p) => p.estado === cfg.valor),
+    ).map((cfg) => cfg.valor);
+    this.expandidos.set(new Set(conPisos));
+  }
 
   /** Piso esperando decisión tras llegar a Visitado. */
   readonly pisoDecision = signal<Piso | null>(null);

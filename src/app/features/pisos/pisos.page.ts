@@ -160,7 +160,7 @@ interface ConfigPestana {
               }
               @case ('agencias') {
                 <div class="h-full overflow-y-auto p-4 pb-24">
-                  <app-inmobiliarias-view />
+                  <app-inmobiliarias-view (editar)="abrirEditar($event)" />
                 </div>
               }
               @case ('yo') {
