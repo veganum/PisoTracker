@@ -3,7 +3,7 @@ import { Distrito } from './madrid';
 /** Tipo de entidad de contacto. */
 export type TipoContactoEntidad = 'Inmobiliaria' | 'Financiera';
 
-/** Unidad de los honorarios (euros o porcentaje). */
+/** Unidad de los honorarios o comisión (euros o porcentaje). */
 export type UnidadHonorarios = '€' | '%';
 
 /** Subtipo de una entidad financiera. */
@@ -13,8 +13,7 @@ export const SUBTIPOS_FINANCIERA: readonly SubtipoFinanciera[] = ['Banco', 'Brok
 
 /**
  * Contacto de la búsqueda de vivienda: una **inmobiliaria** o una
- * **financiera/broker**. Un único modelo con `tipo` como discriminador; los
- * campos específicos de cada tipo conviven y solo se muestran los que tocan.
+ * **financiera/broker**. Un único modelo con `tipo` como discriminador.
  * El `nombre` actúa como clave.
  */
 export interface Contacto {
@@ -36,8 +35,8 @@ export interface Contacto {
   honorariosVendedor: number;
   unidadVendedor: UnidadHonorarios;
   exclusiva: boolean;
-  /** Financiación propia / colabora con Kiron. */
-  financiacionPropia: boolean;
+  /** Texto libre: "Kiron", "Departamento propio", "Hipotecas.com"… Vacío = no ofrece. */
+  servicioFinanciero: string;
   direccion: string;
 
   // --- Financiera / Broker ---
@@ -45,17 +44,32 @@ export interface Contacto {
   /** Registrado como intermediario en el Banco de España (Ley 5/2019). */
   registradoBdE: boolean;
   entidades: string;
-  /** Financiación máxima sobre el valor (%). */
+  /** Financiación máxima sobre el valor tasado (%). */
   financiacionMax: number;
-  /** Financia también los gastos (>100%). */
+  /** Financia también los gastos de compra (>80-100% del precio). */
   financiaGastos: boolean;
+
+  // Hipoteca fija
   hipotecaFija: boolean;
+  /** TIN de la hipoteca fija ofrecida (%). */
+  tinFijo: number;
+
+  // Hipoteca variable / mixta
   hipotecaMixta: boolean;
+  /** Diferencial sobre Euríbor (%). P.ej. 0.75 → Euríbor + 0.75%. */
+  diferencial: number;
+
+  /** Plazo máximo financiable (años). */
+  plazoMaximo: number;
+  /** TAE orientativa indicada por la entidad (%). */
+  tae: number;
+
   comisionApertura: number;
+  unidadComisionApertura: UnidadHonorarios;
   comisionIntermediacion: number;
-  /** Vinculaciones/productos exigidos (afectan a la TAE). */
+  /** Vinculaciones/productos exigidos que afectan a la TAE real. */
   vinculaciones: string;
-  /** Tiempo estimado de aprobación (días). */
+  /** Tiempo estimado de aprobación (días hábiles). */
   tiempoAprobacion: number;
   preaprobacionOnline: boolean;
 }
@@ -77,16 +91,21 @@ export function contactoVacio(nombre: string, tipo: TipoContactoEntidad): Contac
     honorariosVendedor: 0,
     unidadVendedor: '%',
     exclusiva: false,
-    financiacionPropia: false,
+    servicioFinanciero: '',
     direccion: '',
     subtipo: 'Broker',
     registradoBdE: false,
     entidades: '',
-    financiacionMax: 0,
+    financiacionMax: 80,
     financiaGastos: false,
     hipotecaFija: false,
+    tinFijo: 0,
     hipotecaMixta: false,
+    diferencial: 0,
+    plazoMaximo: 30,
+    tae: 0,
     comisionApertura: 0,
+    unidadComisionApertura: '%',
     comisionIntermediacion: 0,
     vinculaciones: '',
     tiempoAprobacion: 0,

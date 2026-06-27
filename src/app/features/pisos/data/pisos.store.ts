@@ -17,13 +17,20 @@ type ContactoLegacy = Partial<Contacto> & {
   honorarios?: number;
   comision?: number;
   notas?: string;
+  /** Campo renombrado a servicioFinanciero en la v2 del modelo. */
+  financiacionPropia?: boolean;
 };
 
 /** Normaliza un contacto al modelo actual, tolerando el formato antiguo. */
 function migrarContacto(c: ContactoLegacy): Contacto {
   // Formato nuevo: completamos posibles campos nuevos con sus valores por defecto.
   if (c.tipo === 'Inmobiliaria' || c.tipo === 'Financiera') {
-    return { ...contactoVacio(c.nombre ?? '', c.tipo), ...(c as Contacto) };
+    const resultado: Contacto = { ...contactoVacio(c.nombre ?? '', c.tipo), ...(c as Contacto) };
+    // financiacionPropia (bool) → servicioFinanciero (string)
+    if (c.financiacionPropia === true && !resultado.servicioFinanciero) {
+      resultado.servicioFinanciero = 'Financiación propia';
+    }
+    return resultado;
   }
   // Formato antiguo (CondicionesInmobiliaria): siempre inmobiliaria.
   const base = contactoVacio(c.nombre ?? '', 'Inmobiliaria');
