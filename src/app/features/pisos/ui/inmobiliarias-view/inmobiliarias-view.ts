@@ -42,9 +42,14 @@ import { ContactoCard } from '../contacto-card/contacto-card';
           type="button"
           (click)="agregar()"
           [disabled]="!nuevoNombre().trim()"
-          class="btn-primario shrink-0 px-4 py-2.5 text-sm"
+          aria-label="Añadir"
+          class="btn-primario flex shrink-0 items-center justify-center px-4 py-2.5"
         >
-          Añadir
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor"
+            stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
         </button>
       </div>
 

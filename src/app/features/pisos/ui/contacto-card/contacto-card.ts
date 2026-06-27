@@ -37,7 +37,7 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
           </div>
         } @else {
           <button type="button" (click)="confirmandoBorrado.set(true)" aria-label="Borrar contacto"
-            class="flex items-center justify-center rounded-lg bg-warning/15 px-2.5 py-2 text-warning ring-1 ring-warning/25 active:scale-95">
+            class="flex items-center justify-center rounded-lg bg-danger/10 px-2.5 py-2 text-danger ring-1 ring-danger/25 active:scale-95">
             <app-icono nombre="trash" [tam]="16" />
           </button>
         }
@@ -74,9 +74,19 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
         </div>
       }
 
-      <!-- ── Contacto ── -->
-      <div class="space-y-3 border-t border-border px-4 py-3">
-        <p class="text-xs font-semibold uppercase tracking-wide text-muted">Contacto</p>
+      <!-- ── Contacto (colapsable) ── -->
+      <div class="border-t border-border">
+        <button type="button" (click)="mostrarContacto.set(!mostrarContacto())"
+          class="flex w-full items-center justify-between px-4 py-3 text-left">
+          <span class="text-xs font-semibold uppercase tracking-wide text-muted">Contacto</span>
+          <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 text-muted transition-transform"
+            [class.rotate-180]="mostrarContacto()"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      @if (mostrarContacto()) {
+      <div class="space-y-3 px-4 pb-3">
 
         <label class="block">
           <span class="etiqueta">Persona de contacto</span>
@@ -147,6 +157,8 @@ import { Distrito, DISTRITOS_NOMBRES } from '../../models/madrid';
               placeholder="Calle, número…" class="campo py-2.5" />
           </label>
         }
+      </div>
+      }
       </div>
 
       <!-- ── Distritos (inmobiliaria, colapsable) ── -->
@@ -449,6 +461,7 @@ export class ContactoCard {
 
   readonly contacto = input.required<Contacto>();
   readonly confirmandoBorrado = signal(false);
+  readonly mostrarContacto = signal(false);
   readonly mostrarDistritos = signal(false);
   readonly mostrarCondiciones = signal(false);
 
