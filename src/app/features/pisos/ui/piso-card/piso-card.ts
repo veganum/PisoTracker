@@ -139,9 +139,11 @@ import { Piso } from '../../models/piso.model';
               [href]="piso().url"
               target="_blank"
               rel="noopener"
-              class="flex flex-1 items-center justify-center rounded-2xl bg-surface-2 py-2.5 text-sm font-medium text-text ring-1 ring-border transition active:scale-[0.96]"
+              aria-label="Ver anuncio"
+              title="Ver anuncio"
+              class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-surface-2 text-muted ring-1 ring-border/60 transition active:scale-[0.96]"
             >
-              Ver anuncio
+              <app-icono nombre="link" [tam]="18" />
             </a>
           }
           <!-- Comparativa: verde (solo en favoritos) -->
@@ -151,11 +153,13 @@ import { Piso } from '../../models/piso.model';
               (click)="comparativa.emit()"
               [attr.aria-label]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
               [attr.title]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
-              class="flex h-11 flex-1 items-center justify-center rounded-2xl transition active:scale-[0.96]"
+              class="flex h-11 flex-1 items-center justify-center rounded-2xl ring-1 transition active:scale-[0.96]"
               [class.bg-violet-500/25]="estaEnComparativa()"
               [class.text-violet-500]="estaEnComparativa()"
+              [class.ring-violet-500/40]="estaEnComparativa()"
               [class.bg-violet-500/10]="!estaEnComparativa()"
               [class.text-violet-400]="!estaEnComparativa()"
+              [class.ring-violet-500/20]="!estaEnComparativa()"
             >
               <span class="text-base leading-none">📊</span>
             </button>
@@ -166,7 +170,7 @@ import { Piso } from '../../models/piso.model';
             (click)="editar.emit(piso())"
             aria-label="Editar piso"
             title="Editar"
-            class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-warning/15 text-warning transition active:scale-[0.96]"
+            class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-warning/15 text-warning ring-1 ring-warning/30 transition active:scale-[0.96]"
           >
             <app-icono nombre="pencil" [tam]="18" />
           </button>
@@ -176,7 +180,7 @@ import { Piso } from '../../models/piso.model';
             (click)="borrar.emit(piso())"
             aria-label="Descartar piso"
             title="Descartar"
-            class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-danger/10 text-danger transition active:scale-[0.96]"
+            class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-danger/10 text-danger ring-1 ring-danger/25 transition active:scale-[0.96]"
           >
             <app-icono nombre="trash" [tam]="18" />
           </button>
