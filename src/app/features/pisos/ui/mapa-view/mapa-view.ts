@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import * as L from 'leaflet';
 import { Icono } from '../../../../shared/icono/icono';
+import { GeocodingService, ResultadoBusqueda } from '../../data/geocoding.service';
 import { PisosStore } from '../../data/pisos.store';
 import { UbicacionService } from '../../data/ubicacion.service';
 import { colorEstado, ESTADOS_PIPELINE } from '../../models/estado-pipeline';
@@ -27,23 +28,9 @@ const NOMBRES_DISTRITO: Record<string, Distrito> = {
   'San Blas': 'San Blas-Canillejas',
 };
 
-/** Centro y zoom inicial: Madrid. */
 const MADRID: L.LatLngTuple = [40.4168, -3.7038];
 const ZOOM_INICIAL = 12;
 
-/**
- * Vista de mapa (Leaflet).
- *
- * Todo el ciclo de vida IMPERATIVO de Leaflet queda aislado aquí:
- *   - `afterNextRender()` inicializa el mapa cuando el contenedor ya existe.
- *   - Un `effect()` redibuja los marcadores cuando cambian los pisos (signals).
- *   - `DestroyRef` limpia el mapa al destruir el componente.
- *
- * Interacciones:
- *   - Clic en el mapa  → emite `nuevo` con las coordenadas (abre el alta).
- *   - Popup del marcador → dirección, barrio, precio, estado y botones
- *     Editar / Borrar (que emiten `editar` / `borrar`).
- */
 @Component({
   selector: 'app-mapa-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,7 +40,92 @@ const ZOOM_INICIAL = 12;
     <div class="relative h-full w-full">
       <div #mapa class="h-full w-full"></div>
 
-      <!-- Controles superiores derecha -->
+      <!-- ── Buscador de calles (esquina superior izquierda) ── -->
+      <div class="absolute left-3 top-3 z-[1050]">
+        @if (!buscadorAbierto()) {
+          <button
+            type="button"
+            (click)="abrirBuscador()"
+            aria-label="Buscar calle o dirección"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-text shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
+          >
+            <app-icono nombre="search" [tam]="20" />
+          </button>
+        } @else {
+          <div class="w-72 max-w-[calc(100vw-5rem)] overflow-hidden rounded-2xl bg-surface/95 shadow-xl ring-1 ring-border backdrop-blur">
+            <!-- Fila de input -->
+            <div class="flex items-center gap-2 px-3 py-2.5">
+              <app-icono nombre="search" [tam]="16" class="shrink-0 text-muted" />
+              <input
+                #inputBuscador
+                type="text"
+                [value]="textoBusqueda()"
+                (input)="onTextoBusqueda($event)"
+                (keydown.escape)="cerrarBuscador()"
+                placeholder="Calle, número, barrio…"
+                class="min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
+                autocomplete="off"
+              />
+              <!-- Spinner de carga -->
+              @if (buscando()) {
+                <span class="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-border border-t-primary"></span>
+              }
+              <!-- Micrófono (solo si el navegador lo soporta) -->
+              @if (soportaVoz) {
+                <button
+                  type="button"
+                  (click)="iniciarVoz()"
+                  [attr.aria-label]="escuchando() ? 'Escuchando…' : 'Buscar por voz'"
+                  class="shrink-0 transition"
+                  [class.text-danger]="escuchando()"
+                  [class.text-muted]="!escuchando()"
+                >
+                  <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="22"/>
+                  </svg>
+                </button>
+              }
+              <!-- Cerrar -->
+              <button
+                type="button"
+                (click)="cerrarBuscador()"
+                aria-label="Cerrar buscador"
+                class="shrink-0 text-muted transition hover:text-text"
+              >
+                <app-icono nombre="x" [tam]="16" />
+              </button>
+            </div>
+
+            <!-- Resultados -->
+            @if (resultadosBusqueda().length > 0) {
+              <ul class="border-t border-border">
+                @for (r of resultadosBusqueda(); track r.etiqueta) {
+                  <li>
+                    <button
+                      type="button"
+                      (click)="seleccionarResultado(r)"
+                      class="flex w-full items-start gap-2 px-3 py-2.5 text-left transition hover:bg-surface-2 active:bg-surface-2"
+                    >
+                      <span class="mt-0.5 shrink-0 text-base">📍</span>
+                      <span class="text-sm text-text">{{ r.etiqueta }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+
+            <!-- Sin resultados -->
+            @if (!buscando() && textoBusqueda().trim().length >= 3 && resultadosBusqueda().length === 0) {
+              <p class="border-t border-border px-3 py-2.5 text-sm text-muted">Sin resultados para esta búsqueda.</p>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- ── Controles superiores derecha ── -->
       <div class="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
         <button
           type="button"
@@ -81,7 +153,7 @@ const ZOOM_INICIAL = 12;
         </button>
       </div>
 
-      <!-- Leyenda de colores del pipeline (captura el clic: no añade vivienda) -->
+      <!-- ── Leyenda ── -->
       <div
         class="absolute bottom-3 left-3 z-[1000] cursor-default select-none rounded-2xl bg-surface/95 px-3 py-2.5 text-xs shadow-lg ring-1 ring-border backdrop-blur"
       >
@@ -101,32 +173,38 @@ const ZOOM_INICIAL = 12;
 export class MapaView {
   private readonly store = inject(PisosStore);
   private readonly ubicacion = inject(UbicacionService);
+  private readonly geocoding = inject(GeocodingService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Contenedor del mapa. */
   private readonly mapaEl = viewChild.required<ElementRef<HTMLDivElement>>('mapa');
 
   readonly nuevo = output<{ lat: number; lng: number }>();
   readonly editar = output<Piso>();
   readonly borrar = output<Piso>();
-  /** Distrito pulsado en el mapa (para filtrar la lista). */
   readonly filtrarDistrito = output<Distrito>();
 
-  /** Estados del pipeline para la leyenda de colores. */
   readonly estados = ESTADOS_PIPELINE;
-
-  /** Si la capa de distritos está visible. */
   readonly distritosVisibles = signal(false);
+
+  // ── Buscador ──
+  readonly buscadorAbierto = signal(false);
+  readonly textoBusqueda = signal('');
+  readonly resultadosBusqueda = signal<ResultadoBusqueda[]>([]);
+  readonly buscando = signal(false);
+  readonly escuchando = signal(false);
+  readonly soportaVoz =
+    typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
   private mapa?: L.Map;
   private capaMarcadores?: L.LayerGroup;
   private capaDistritos?: L.GeoJSON;
+  private marcadorBusquedaLeaflet?: L.Marker;
+  private debounceTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
-    // Inicializa Leaflet cuando el DOM del componente ya está pintado.
     afterNextRender(() => this.inicializarMapa());
 
-    // Redibuja los marcadores cuando cambian los pisos o los filtros activos.
     effect(() => {
       const pisos = this.store.pisosFiltrados();
       if (this.mapa) {
@@ -134,14 +212,108 @@ export class MapaView {
       }
     });
 
-    // Limpieza del mapa al destruir el componente (al cambiar de pestaña).
     this.destroyRef.onDestroy(() => {
+      clearTimeout(this.debounceTimer);
       this.mapa?.remove();
       this.mapa = undefined;
     });
   }
 
-  /** Crea el mapa, la capa de tiles de OpenStreetMap y los listeners. */
+  // ── Buscador ──────────────────────────────────────────────────────────────
+
+  abrirBuscador(): void {
+    this.buscadorAbierto.set(true);
+    this.textoBusqueda.set('');
+    this.resultadosBusqueda.set([]);
+  }
+
+  cerrarBuscador(): void {
+    this.buscadorAbierto.set(false);
+    this.textoBusqueda.set('');
+    this.resultadosBusqueda.set([]);
+    this.buscando.set(false);
+    clearTimeout(this.debounceTimer);
+  }
+
+  onTextoBusqueda(ev: Event): void {
+    const texto = (ev.target as HTMLInputElement).value;
+    this.textoBusqueda.set(texto);
+    clearTimeout(this.debounceTimer);
+    if (texto.trim().length < 3) {
+      this.resultadosBusqueda.set([]);
+      this.buscando.set(false);
+      return;
+    }
+    this.buscando.set(true);
+    this.debounceTimer = setTimeout(async () => {
+      const resultados = await this.geocoding.buscarDireccion(texto);
+      this.resultadosBusqueda.set(resultados);
+      this.buscando.set(false);
+    }, 400);
+  }
+
+  seleccionarResultado(r: ResultadoBusqueda): void {
+    this.cerrarBuscador();
+    if (!this.mapa) return;
+    this.limpiarMarcadorBusqueda();
+    this.mapa.flyTo([r.lat, r.lng], 17);
+    const marcador = L.marker([r.lat, r.lng], { icon: this.iconoBusqueda() });
+    marcador.bindPopup(this.htmlPopupBusqueda(r));
+    marcador.on('popupopen', (e: L.PopupEvent) => {
+      const raiz = e.popup.getElement();
+      if (!raiz) return;
+      raiz.querySelector<HTMLButtonElement>('.btn-anadir-busqueda')?.addEventListener('click', () => {
+        this.mapa?.closePopup();
+        this.limpiarMarcadorBusqueda();
+        this.nuevo.emit({ lat: r.lat, lng: r.lng });
+      });
+      raiz.querySelector<HTMLButtonElement>('.btn-cerrar-busqueda')?.addEventListener('click', () => {
+        this.mapa?.closePopup();
+        this.limpiarMarcadorBusqueda();
+      });
+    });
+    marcador.addTo(this.mapa);
+    marcador.openPopup();
+    this.marcadorBusquedaLeaflet = marcador;
+  }
+
+  limpiarMarcadorBusqueda(): void {
+    if (this.marcadorBusquedaLeaflet && this.mapa) {
+      this.mapa.removeLayer(this.marcadorBusquedaLeaflet);
+      this.marcadorBusquedaLeaflet = undefined;
+    }
+  }
+
+  iniciarVoz(): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SR = w['SpeechRecognition'] ?? w['webkitSpeechRecognition'];
+    if (!SR) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec = new (SR as any)();
+    rec.lang = 'es-ES';
+    rec.continuous = false;
+    rec.interimResults = false;
+    this.escuchando.set(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      const texto = e.results[0][0].transcript as string;
+      this.textoBusqueda.set(texto);
+      this.escuchando.set(false);
+      this.buscadorAbierto.set(true);
+      this.buscando.set(true);
+      void this.geocoding.buscarDireccion(texto).then((r) => {
+        this.resultadosBusqueda.set(r);
+        this.buscando.set(false);
+      });
+    };
+    rec.onerror = () => this.escuchando.set(false);
+    rec.onend = () => this.escuchando.set(false);
+    rec.start();
+  }
+
+  // ── Mapa ──────────────────────────────────────────────────────────────────
+
   private inicializarMapa(): void {
     const mapa = L.map(this.mapaEl().nativeElement, {
       center: MADRID,
@@ -154,35 +326,26 @@ export class MapaView {
       attribution: '&copy; OpenStreetMap',
     }).addTo(mapa);
 
-    // Clic en el mapa → alta de piso con coordenadas ya fijadas.
     mapa.on('click', (e: L.LeafletMouseEvent) => {
       this.nuevo.emit({ lat: e.latlng.lat, lng: e.latlng.lng });
     });
 
     this.capaMarcadores = L.layerGroup().addTo(mapa);
     this.mapa = mapa;
-
-    // Dibujo inicial (el contenedor ya tiene tamaño real aquí).
     this.redibujarMarcadores(this.store.pisos());
   }
 
-  /** Ajusta el encuadre del mapa para que se vean todos los pisos. */
   centrarEnTodos(): void {
     const pisos = this.store.pisos();
-    if (!this.mapa || pisos.length === 0) {
-      return;
-    }
+    if (!this.mapa || pisos.length === 0) return;
     const bounds = L.latLngBounds(pisos.map((p) => [p.lat, p.lng] as L.LatLngTuple));
     this.mapa.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
   }
 
-  /** Muestra u oculta la capa de distritos (carga el GeoJSON la 1ª vez). */
   async alternarDistritos(): Promise<void> {
     const mostrar = !this.distritosVisibles();
     this.distritosVisibles.set(mostrar);
-    if (!this.mapa) {
-      return;
-    }
+    if (!this.mapa) return;
     if (mostrar) {
       if (!this.capaDistritos) {
         this.capaDistritos = await this.cargarDistritos();
@@ -193,7 +356,6 @@ export class MapaView {
     }
   }
 
-  /** Carga el GeoJSON de los 21 distritos y construye su capa estilizada. */
   private async cargarDistritos(): Promise<L.GeoJSON | undefined> {
     try {
       const resp = await fetch('distritos-madrid.geojson');
@@ -205,11 +367,10 @@ export class MapaView {
           const distrito = (NOMBRES_DISTRITO[bruto] ?? bruto) as Distrito;
           capa.bindTooltip(distrito, { sticky: true });
           capa.on('click', (e) => {
-            L.DomEvent.stopPropagation(e); // no dispares el "añadir piso" del mapa
-            this.store.distritoMapa.set(distrito); // distrito fiable (del polígono)
-            this.store.barrioMapa.set(''); // se rellenará al ubicar el barrio
-            this.filtrarDistrito.emit(distrito); // salta a la pestaña Lista (ya filtra)
-            // Barrio EXACTO del punto por geometría (point-in-polygon, asíncrono).
+            L.DomEvent.stopPropagation(e);
+            this.store.distritoMapa.set(distrito);
+            this.store.barrioMapa.set('');
+            this.filtrarDistrito.emit(distrito);
             const { lat, lng } = (e as L.LeafletMouseEvent).latlng;
             this.ubicacion.ubicar(lat, lng).then((loc) => {
               if (loc && loc.distrito === distrito) {
@@ -229,28 +390,20 @@ export class MapaView {
     }
   }
 
-  /** Vacía y vuelve a pintar todos los marcadores. */
   private redibujarMarcadores(pisos: Piso[]): void {
     const capa = this.capaMarcadores;
-    if (!capa) {
-      return;
-    }
+    if (!capa) return;
     capa.clearLayers();
-
     for (const piso of pisos) {
       const marcador = L.marker([piso.lat, piso.lng], {
         icon: this.iconoGota(colorEstado(piso.estado)),
       });
-
       marcador.bindPopup(this.htmlPopup(piso));
-      // Cableamos los botones del popup al abrirse (DOM imperativo de Leaflet).
       marcador.on('popupopen', (e: L.PopupEvent) => this.cablearPopup(e, piso));
-
       capa.addLayer(marcador);
     }
   }
 
-  /** Icono "gota" SVG coloreado según el estado del pipeline. */
   private iconoGota(color: string): L.DivIcon {
     const html = `
       <svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
@@ -267,7 +420,36 @@ export class MapaView {
     });
   }
 
-  /** Contenido HTML del popup (estilos en línea para no depender de purga CSS). */
+  private iconoBusqueda(): L.DivIcon {
+    return L.divIcon({
+      className: 'marcador-busqueda',
+      html: `<div style="width:20px;height:20px;border-radius:50%;background:#4f46e5;border:3px solid #fff;box-shadow:0 2px 10px rgba(79,70,229,0.6)"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+      popupAnchor: [0, -14],
+    });
+  }
+
+  private htmlPopupBusqueda(r: ResultadoBusqueda): string {
+    return `
+      <div style="min-width:190px;font-family:inherit">
+        <p style="margin:0;font-size:11px;color:#71717a;font-weight:500">📍 Dirección encontrada</p>
+        <p style="margin:4px 0 10px;font-weight:600;font-size:13px;color:#18181b;line-height:1.3">${this.escapar(r.etiqueta)}</p>
+        <div style="display:flex;gap:6px">
+          <button class="btn-anadir-busqueda"
+            style="flex:1;padding:8px 0;border:0;border-radius:8px;background:#4f46e5;
+                   color:#fff;font-weight:600;font-size:12px;cursor:pointer">
+            ➕ Añadir piso aquí
+          </button>
+          <button class="btn-cerrar-busqueda"
+            style="padding:8px 10px;border:0;border-radius:8px;background:#f4f4f5;
+                   color:#71717a;font-weight:600;font-size:12px;cursor:pointer">
+            ✕
+          </button>
+        </div>
+      </div>`;
+  }
+
   private htmlPopup(piso: Piso): string {
     const color = colorEstado(piso.estado);
     const precio = piso.precio.toLocaleString('es-ES');
@@ -287,12 +469,9 @@ export class MapaView {
       </div>`;
   }
 
-  /** Engancha los botones del popup a las salidas del componente. */
   private cablearPopup(e: L.PopupEvent, piso: Piso): void {
     const raiz = e.popup.getElement();
-    if (!raiz) {
-      return;
-    }
+    if (!raiz) return;
     raiz.querySelector<HTMLButtonElement>('.btn-editar')?.addEventListener('click', () => {
       this.mapa?.closePopup();
       this.editar.emit(piso);
@@ -303,7 +482,6 @@ export class MapaView {
     });
   }
 
-  /** Escapa texto para inyectarlo con seguridad en el HTML del popup. */
   private escapar(texto: string): string {
     const div = document.createElement('div');
     div.textContent = texto;

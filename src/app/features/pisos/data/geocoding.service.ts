@@ -1,6 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Distrito, DISTRITOS } from '../models/madrid';
 
+/** Resultado de una búsqueda de dirección (Photon/Komoot). */
+export interface ResultadoBusqueda {
+  etiqueta: string;
+  lat: number;
+  lng: number;
+}
+
 /** Resultado de la geocodificación inversa (campos best-effort). */
 export interface DireccionDetectada {
   direccion: string | null;
@@ -36,6 +43,42 @@ interface NominatimRespuesta {
 @Injectable({ providedIn: 'root' })
 export class GeocodingService {
   private readonly base = 'https://nominatim.openstreetmap.org/reverse';
+
+  /**
+   * Búsqueda directa de dirección usando Photon (Komoot/OSM).
+   * Sin API key, diseñado para autocomplete. Bbox limita resultados a Madrid.
+   */
+  async buscarDireccion(texto: string): Promise<ResultadoBusqueda[]> {
+    if (!texto.trim()) return [];
+    const params = new URLSearchParams({
+      q: texto,
+      lang: 'es',
+      limit: '5',
+      bbox: '-3.9,40.3,-3.5,40.6',
+    });
+    try {
+      const resp = await fetch(`https://photon.komoot.io/api/?${params}`, {
+        headers: { Accept: 'application/json' },
+      });
+      if (!resp.ok) return [];
+      type F = { geometry: { coordinates: [number, number] }; properties: { name?: string; street?: string; housenumber?: string; city?: string; district?: string; county?: string } };
+      const data = (await resp.json()) as { features: F[] };
+      return data.features.map((f) => {
+        const p = f.properties;
+        const calle = p.street
+          ? p.housenumber ? `${p.street}, ${p.housenumber}` : p.street
+          : (p.name ?? '');
+        const partes = [calle, p.district ?? p.county, p.city ?? 'Madrid'].filter(Boolean);
+        return {
+          etiqueta: partes.join(' · '),
+          lat: f.geometry.coordinates[1], // GeoJSON = [lng, lat] → invertir
+          lng: f.geometry.coordinates[0],
+        };
+      });
+    } catch {
+      return [];
+    }
+  }
 
   /** Dado un punto, intenta obtener la calle, el distrito y el barrio. */
   async reverse(lat: number, lng: number): Promise<DireccionDetectada> {
