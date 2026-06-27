@@ -150,7 +150,7 @@ import { Piso } from '../../models/piso.model';
           @if (piso().precio > 0) {
             <button
               type="button"
-              (click)="mostrarAnalisis.set(true)"
+              (click)="abrirAnalisis()"
               aria-label="Análisis de coste"
               title="Análisis de coste"
               class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20 transition active:scale-[0.96]"
@@ -226,30 +226,59 @@ import { Piso } from '../../models/piso.model';
           <!-- Coste total -->
           <div class="mb-4 rounded-2xl bg-surface-2 p-4">
             <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Coste de compra (2ª mano)</p>
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="text-muted">Precio</span>
+            <div class="space-y-2.5 text-sm">
+              <div class="flex items-center justify-between gap-3">
+                <span class="shrink-0 text-muted">Precio</span>
                 <span class="font-medium text-text">{{ piso().precio | number:'1.0-0' }} €</span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-muted">ITP (6%)</span>
-                <span class="font-medium text-text">{{ costes().itp | number:'1.0-0' }} €</span>
+              <div class="flex items-center justify-between gap-3">
+                <span class="shrink-0 text-muted">ITP (6%)</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" inputmode="numeric" [value]="itp()"
+                    (input)="itp.set(numInput($event))"
+                    class="w-24 rounded-xl bg-surface px-2 py-1 text-right text-sm font-medium text-text ring-1 ring-border" />
+                  <span class="text-muted">€</span>
+                </div>
               </div>
-              <div class="flex justify-between">
-                <span class="text-muted">Notaría (~0,3%)</span>
-                <span class="font-medium text-text">{{ costes().notaria | number:'1.0-0' }} €</span>
+              <div class="flex items-center justify-between gap-3">
+                <span class="shrink-0 text-muted">Notaría</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" inputmode="numeric" [value]="notaria()"
+                    (input)="notaria.set(numInput($event))"
+                    class="w-24 rounded-xl bg-surface px-2 py-1 text-right text-sm font-medium text-text ring-1 ring-border" />
+                  <span class="text-muted">€</span>
+                </div>
               </div>
-              <div class="flex justify-between">
-                <span class="text-muted">Registro (~0,2%)</span>
-                <span class="font-medium text-text">{{ costes().registro | number:'1.0-0' }} €</span>
+              <div class="flex items-center justify-between gap-3">
+                <span class="shrink-0 text-muted">Registro</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" inputmode="numeric" [value]="registro()"
+                    (input)="registro.set(numInput($event))"
+                    class="w-24 rounded-xl bg-surface px-2 py-1 text-right text-sm font-medium text-text ring-1 ring-border" />
+                  <span class="text-muted">€</span>
+                </div>
               </div>
-              <div class="flex justify-between">
-                <span class="text-muted">Tasación</span>
-                <span class="font-medium text-text">400 €</span>
+              <div class="flex items-center justify-between gap-3">
+                <span class="shrink-0 text-muted">Tasación</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" inputmode="numeric" [value]="tasacion()"
+                    (input)="tasacion.set(numInput($event))"
+                    class="w-24 rounded-xl bg-surface px-2 py-1 text-right text-sm font-medium text-text ring-1 ring-border" />
+                  <span class="text-muted">€</span>
+                </div>
               </div>
-              <div class="flex justify-between border-t border-border pt-2">
+              <div class="flex items-center justify-between gap-3">
+                <span class="shrink-0 text-muted">Honorarios inmo.</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" inputmode="numeric" [value]="honorariosInmo()"
+                    (input)="honorariosInmo.set(numInput($event))"
+                    class="w-24 rounded-xl bg-surface px-2 py-1 text-right text-sm font-medium text-text ring-1 ring-border" />
+                  <span class="text-muted">€</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-3 border-t border-border pt-2">
                 <span class="font-bold text-text">Total para entrar</span>
-                <span class="font-bold text-primary">{{ costes().total | number:'1.0-0' }} €</span>
+                <span class="font-bold text-primary">{{ totalCompra() | number:'1.0-0' }} €</span>
               </div>
             </div>
           </div>
@@ -325,19 +354,24 @@ export class PisoCard {
 
   // ── Análisis de coste ──────────────────────────────────────────
   readonly mostrarAnalisis = signal(false);
+
+  // Costes editables (se inicializan al abrir)
+  readonly itp = signal(0);
+  readonly notaria = signal(0);
+  readonly registro = signal(0);
+  readonly tasacion = signal(400);
+  readonly honorariosInmo = signal(0);
+
+  // Hipoteca
   readonly entradaPct = signal(20);
   readonly tipoInteres = signal(3.5);
   readonly plazo = signal(30);
 
-  readonly costes = computed(() => {
-    const p = this.piso().precio;
-    const itp = p * 0.06;
-    const notaria = Math.round(Math.min(Math.max(p * 0.003, 300), 2500));
-    const registro = Math.round(Math.min(Math.max(p * 0.002, 150), 1200));
-    const tasacion = 400;
-    const gastos = itp + notaria + registro + tasacion;
-    return { itp, notaria, registro, tasacion, total: p + gastos };
-  });
+  readonly totalGastos = computed(() =>
+    this.itp() + this.notaria() + this.registro() + this.tasacion() + this.honorariosInmo()
+  );
+
+  readonly totalCompra = computed(() => this.piso().precio + this.totalGastos());
 
   readonly hipoteca = computed(() => {
     const p = this.piso().precio;
@@ -348,6 +382,16 @@ export class PisoCard {
     const cuota = r > 0 ? capital * r / (1 - Math.pow(1 + r, -n)) : capital / n;
     return { entrada, capital, cuota: Math.round(cuota) };
   });
+
+  abrirAnalisis(): void {
+    const p = this.piso().precio;
+    this.itp.set(Math.round(p * 0.06));
+    this.notaria.set(Math.round(Math.min(Math.max(p * 0.003, 300), 2500)));
+    this.registro.set(Math.round(Math.min(Math.max(p * 0.002, 150), 1200)));
+    this.tasacion.set(400);
+    this.honorariosInmo.set(0);
+    this.mostrarAnalisis.set(true);
+  }
 
   numInput(ev: Event): number {
     const n = Number((ev.target as HTMLInputElement).value);
