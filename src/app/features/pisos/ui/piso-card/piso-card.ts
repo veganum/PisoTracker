@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { Icono } from '../../../../shared/icono/icono';
 import { colorEstado } from '../../models/estado-pipeline';
 import { Piso } from '../../models/piso.model';
@@ -146,7 +146,19 @@ import { Piso } from '../../models/piso.model';
               <app-icono nombre="link" [tam]="18" />
             </a>
           }
-          <!-- Comparativa: verde (solo en favoritos) -->
+          <!-- Análisis de coste (solo si hay precio) -->
+          @if (piso().precio > 0) {
+            <button
+              type="button"
+              (click)="mostrarAnalisis.set(true)"
+              aria-label="Análisis de coste"
+              title="Análisis de coste"
+              class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20 transition active:scale-[0.96]"
+            >
+              <span class="text-sm font-bold leading-none">€</span>
+            </button>
+          }
+          <!-- Comparativa: violeta (solo en favoritos) -->
           @if (estaEnComparativa() !== null) {
             <button
               type="button"
@@ -187,6 +199,112 @@ import { Piso } from '../../models/piso.model';
         </div>
       </div>
     </article>
+
+    <!-- ── Sheet de análisis de coste ── -->
+    @if (mostrarAnalisis()) {
+      <div
+        class="fixed inset-0 z-[2000] flex items-end justify-center bg-black/40 backdrop-blur-sm lg:items-center"
+        (click)="mostrarAnalisis.set(false)"
+      >
+        <div
+          class="w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface p-5 pb-10 lg:max-h-[90vh] lg:rounded-3xl lg:pb-6"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Cabecera -->
+          <div class="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wide text-muted">Análisis de coste</p>
+              <p class="mt-0.5 text-base font-bold text-text">{{ piso().direccion }}</p>
+              <p class="text-2xl font-bold text-text">{{ piso().precio | number:'1.0-0' }} €</p>
+            </div>
+            <button type="button" (click)="mostrarAnalisis.set(false)"
+              class="shrink-0 rounded-full bg-surface-2 p-2 text-muted">
+              <app-icono nombre="x" [tam]="16" />
+            </button>
+          </div>
+
+          <!-- Coste total -->
+          <div class="mb-4 rounded-2xl bg-surface-2 p-4">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Coste de compra (2ª mano)</p>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-muted">Precio</span>
+                <span class="font-medium text-text">{{ piso().precio | number:'1.0-0' }} €</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted">ITP (6%)</span>
+                <span class="font-medium text-text">{{ costes().itp | number:'1.0-0' }} €</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted">Notaría (~0,3%)</span>
+                <span class="font-medium text-text">{{ costes().notaria | number:'1.0-0' }} €</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted">Registro (~0,2%)</span>
+                <span class="font-medium text-text">{{ costes().registro | number:'1.0-0' }} €</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted">Tasación</span>
+                <span class="font-medium text-text">400 €</span>
+              </div>
+              <div class="flex justify-between border-t border-border pt-2">
+                <span class="font-bold text-text">Total para entrar</span>
+                <span class="font-bold text-primary">{{ costes().total | number:'1.0-0' }} €</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hipoteca -->
+          <div class="rounded-2xl bg-surface-2 p-4">
+            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Hipoteca estimada</p>
+
+            <!-- Parámetros ajustables -->
+            <div class="mb-4 grid grid-cols-3 gap-2">
+              <label class="block">
+                <span class="etiqueta text-[10px]">Entrada %</span>
+                <input type="number" inputmode="numeric" min="5" max="50"
+                  [value]="entradaPct()"
+                  (input)="entradaPct.set(numInput($event))"
+                  class="campo py-2 text-center text-sm font-semibold" />
+              </label>
+              <label class="block">
+                <span class="etiqueta text-[10px]">Tipo %</span>
+                <input type="number" inputmode="decimal" step="0.1" min="0"
+                  [value]="tipoInteres()"
+                  (input)="tipoInteres.set(numInput($event))"
+                  class="campo py-2 text-center text-sm font-semibold" />
+              </label>
+              <label class="block">
+                <span class="etiqueta text-[10px]">Plazo (años)</span>
+                <input type="number" inputmode="numeric" min="5" max="40"
+                  [value]="plazo()"
+                  (input)="plazo.set(numInput($event))"
+                  class="campo py-2 text-center text-sm font-semibold" />
+              </label>
+            </div>
+
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-muted">Entrada ({{ entradaPct() }}%)</span>
+                <span class="font-medium text-text">{{ hipoteca().entrada | number:'1.0-0' }} €</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted">Capital a financiar</span>
+                <span class="font-medium text-text">{{ hipoteca().capital | number:'1.0-0' }} €</span>
+              </div>
+              <div class="flex justify-between border-t border-border pt-2">
+                <span class="font-bold text-text">Cuota mensual</span>
+                <span class="font-bold text-primary text-base">{{ hipoteca().cuota | number:'1.0-0' }} €/mes</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="mt-3 text-center text-xs text-muted">
+            Estimación orientativa. No es una tasación oficial.
+          </p>
+        </div>
+      </div>
+    }
   `,
 })
 export class PisoCard {
@@ -204,4 +322,35 @@ export class PisoCard {
   readonly comparativa = output<void>();
 
   readonly color = computed(() => colorEstado(this.piso().estado));
+
+  // ── Análisis de coste ──────────────────────────────────────────
+  readonly mostrarAnalisis = signal(false);
+  readonly entradaPct = signal(20);
+  readonly tipoInteres = signal(3.5);
+  readonly plazo = signal(30);
+
+  readonly costes = computed(() => {
+    const p = this.piso().precio;
+    const itp = p * 0.06;
+    const notaria = Math.round(Math.min(Math.max(p * 0.003, 300), 2500));
+    const registro = Math.round(Math.min(Math.max(p * 0.002, 150), 1200));
+    const tasacion = 400;
+    const gastos = itp + notaria + registro + tasacion;
+    return { itp, notaria, registro, tasacion, total: p + gastos };
+  });
+
+  readonly hipoteca = computed(() => {
+    const p = this.piso().precio;
+    const entrada = Math.round(p * this.entradaPct() / 100);
+    const capital = p - entrada;
+    const r = this.tipoInteres() / 100 / 12;
+    const n = this.plazo() * 12;
+    const cuota = r > 0 ? capital * r / (1 - Math.pow(1 + r, -n)) : capital / n;
+    return { entrada, capital, cuota: Math.round(cuota) };
+  });
+
+  numInput(ev: Event): number {
+    const n = Number((ev.target as HTMLInputElement).value);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  }
 }
