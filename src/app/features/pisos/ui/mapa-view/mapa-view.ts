@@ -40,122 +40,104 @@ const ZOOM_INICIAL = 12;
     <div class="relative h-full w-full">
       <div #mapa class="h-full w-full"></div>
 
-      <!-- ── Buscador de calles (esquina superior izquierda) ── -->
-      <div class="absolute left-3 top-3 z-[1050]">
-        @if (!buscadorAbierto()) {
-          <button
-            type="button"
-            (click)="abrirBuscador()"
-            aria-label="Buscar calle o dirección"
-            class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-text shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
-          >
-            <app-icono nombre="search" [tam]="20" />
-          </button>
-        } @else {
-          <div class="w-72 max-w-[calc(100vw-5rem)] overflow-hidden rounded-2xl bg-surface/95 shadow-xl ring-1 ring-border backdrop-blur">
-            <!-- Fila de input -->
-            <div class="flex items-center gap-2 px-3 py-2.5">
-              <app-icono nombre="search" [tam]="16" class="shrink-0 text-muted" />
-              <input
-                #inputBuscador
-                type="text"
-                [value]="textoBusqueda()"
-                (input)="onTextoBusqueda($event)"
-                (keydown.escape)="cerrarBuscador()"
-                placeholder="Calle, número, barrio…"
-                class="min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
-                autocomplete="off"
-              />
-              <!-- Spinner de carga -->
-              @if (buscando()) {
-                <span class="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-border border-t-primary"></span>
-              }
-              <!-- Micrófono (solo si el navegador lo soporta) -->
-              @if (soportaVoz) {
-                <button
-                  type="button"
-                  (click)="iniciarVoz()"
-                  [attr.aria-label]="escuchando() ? 'Escuchando…' : 'Buscar por voz'"
-                  class="shrink-0 transition"
-                  [class.text-danger]="escuchando()"
-                  [class.text-muted]="!escuchando()"
-                >
-                  <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="22"/>
-                  </svg>
-                </button>
-              }
-              <!-- Cerrar -->
-              <button
-                type="button"
-                (click)="cerrarBuscador()"
-                aria-label="Cerrar buscador"
-                class="shrink-0 text-muted transition hover:text-text"
-              >
-                <app-icono nombre="x" [tam]="16" />
-              </button>
-            </div>
+      <!-- ── Controles superiores derecha (buscador + centrar + distritos) ── -->
+      <div class="absolute right-3 top-3 z-[1050] flex flex-col gap-2">
 
-            <!-- Resultados -->
-            @if (resultadosBusqueda().length > 0) {
-              <ul class="border-t border-border">
-                @for (r of resultadosBusqueda(); track r.etiqueta) {
-                  <li>
-                    <button
-                      type="button"
-                      (click)="seleccionarResultado(r)"
-                      class="flex w-full items-start gap-2 px-3 py-2.5 text-left transition hover:bg-surface-2 active:bg-surface-2"
-                    >
-                      <span class="mt-0.5 shrink-0 text-base">📍</span>
-                      <span class="text-sm text-text">{{ r.etiqueta }}</span>
-                    </button>
-                  </li>
+        <!-- Buscador: botón cuando cerrado, pill cuando abierto -->
+        <div class="relative">
+          @if (buscadorAbierto()) {
+            <!-- Pill expandido, crece hacia la izquierda -->
+            <div class="absolute right-0 top-0 w-72 max-w-[calc(100vw-5.5rem)] overflow-hidden rounded-2xl shadow-xl ring-1 ring-white/20 backdrop-blur-xl"
+              style="background: color-mix(in srgb, var(--color-surface) 65%, transparent)">
+              <div class="flex items-center gap-2 px-3 py-2.5">
+                <app-icono nombre="search" [tam]="16" class="shrink-0 text-muted" />
+                <input
+                  type="text"
+                  [value]="textoBusqueda()"
+                  (input)="onTextoBusqueda($event)"
+                  (keydown.escape)="cerrarBuscador()"
+                  placeholder="Calle, número, barrio…"
+                  class="min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
+                  autocomplete="off"
+                />
+                @if (buscando()) {
+                  <span class="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-border border-t-primary"></span>
                 }
-              </ul>
-            }
+                @if (soportaVoz) {
+                  <button type="button" (click)="iniciarVoz()"
+                    [attr.aria-label]="escuchando() ? 'Escuchando…' : 'Buscar por voz'"
+                    class="shrink-0 transition"
+                    [class.text-danger]="escuchando()"
+                    [class.text-muted]="!escuchando()"
+                  >
+                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                      <line x1="12" y1="19" x2="12" y2="22"/>
+                    </svg>
+                  </button>
+                }
+                <button type="button" (click)="cerrarBuscador()" aria-label="Cerrar buscador"
+                  class="shrink-0 text-muted transition hover:text-text">
+                  <app-icono nombre="x" [tam]="16" />
+                </button>
+              </div>
+              @if (resultadosBusqueda().length > 0) {
+                <ul class="border-t border-white/10">
+                  @for (r of resultadosBusqueda(); track r.etiqueta) {
+                    <li>
+                      <button type="button" (click)="seleccionarResultado(r)"
+                        class="flex w-full items-start gap-2 px-3 py-2.5 text-left transition hover:bg-white/10 active:bg-white/10">
+                        <span class="mt-0.5 shrink-0 text-base">📍</span>
+                        <span class="text-sm text-text">{{ r.etiqueta }}</span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (!buscando() && textoBusqueda().trim().length >= 3 && resultadosBusqueda().length === 0) {
+                <p class="border-t border-white/10 px-3 py-2.5 text-sm text-muted">Sin resultados.</p>
+              }
+            </div>
+            <!-- Espaciador para mantener la altura del botón colapsado -->
+            <div class="h-10 w-10"></div>
+          } @else {
+            <button type="button" (click)="abrirBuscador()" aria-label="Buscar calle o dirección"
+              class="flex h-10 w-10 items-center justify-center rounded-xl shadow-lg ring-1 ring-white/20 backdrop-blur-xl transition active:scale-90"
+              style="background: color-mix(in srgb, var(--color-surface) 65%, transparent)">
+              <app-icono nombre="search" [tam]="20" />
+            </button>
+          }
+        </div>
 
-            <!-- Sin resultados -->
-            @if (!buscando() && textoBusqueda().trim().length >= 3 && resultadosBusqueda().length === 0) {
-              <p class="border-t border-border px-3 py-2.5 text-sm text-muted">Sin resultados para esta búsqueda.</p>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- ── Controles superiores derecha ── -->
-      <div class="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
-        <button
-          type="button"
-          (click)="centrarEnTodos()"
-          aria-label="Centrar el mapa en todos los pisos"
-          class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface/95 text-text shadow-lg ring-1 ring-border backdrop-blur transition active:scale-90"
-        >
+        <!-- Centrar en todos -->
+        <button type="button" (click)="centrarEnTodos()" aria-label="Centrar el mapa en todos los pisos"
+          class="flex h-10 w-10 items-center justify-center rounded-xl text-text shadow-lg ring-1 ring-white/20 backdrop-blur-xl transition active:scale-90"
+          style="background: color-mix(in srgb, var(--color-surface) 65%, transparent)">
           <app-icono nombre="crosshair" [tam]="20" />
         </button>
-        <button
-          type="button"
-          (click)="alternarDistritos()"
+
+        <!-- Distritos -->
+        <button type="button" (click)="alternarDistritos()"
           [attr.aria-pressed]="distritosVisibles()"
-          aria-label="Mostrar u ocultar distritos"
-          title="Distritos"
-          class="flex h-10 w-10 items-center justify-center rounded-xl shadow-lg ring-1 backdrop-blur transition active:scale-90"
+          aria-label="Mostrar u ocultar distritos" title="Distritos"
+          class="flex h-10 w-10 items-center justify-center rounded-xl shadow-lg ring-1 backdrop-blur-xl transition active:scale-90"
           [class.bg-primary-btn]="distritosVisibles()"
           [class.text-on-primary]="distritosVisibles()"
           [class.ring-transparent]="distritosVisibles()"
-          [class.bg-surface]="!distritosVisibles()"
+          [class.ring-white/20]="!distritosVisibles()"
           [class.text-text]="!distritosVisibles()"
-          [class.ring-border]="!distritosVisibles()"
+          [style.background]="distritosVisibles() ? '' : 'color-mix(in srgb, var(--color-surface) 65%, transparent)'"
         >
           <app-icono nombre="layers" [tam]="20" />
         </button>
       </div>
 
-      <!-- ── Leyenda ── -->
+      <!-- ── Leyenda (liquid glass) ── -->
       <div
-        class="absolute bottom-3 left-3 z-[1000] cursor-default select-none rounded-2xl bg-surface/95 px-3 py-2.5 text-xs shadow-lg ring-1 ring-border backdrop-blur"
+        class="absolute bottom-3 left-3 z-[1000] cursor-default select-none rounded-2xl px-3 py-2.5 text-xs shadow-lg ring-1 ring-white/20 backdrop-blur-xl"
+        style="background: color-mix(in srgb, var(--color-surface) 70%, transparent)"
       >
         <p class="mb-1.5 font-semibold text-text">Toca el mapa para añadir 📍</p>
         <ul class="space-y-1">

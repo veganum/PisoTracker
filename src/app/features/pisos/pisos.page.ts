@@ -176,7 +176,8 @@ interface ConfigPestana {
                 type="button"
                 (click)="abrirNuevo(null)"
                 aria-label="Añadir piso"
-                class="absolute bottom-5 right-5 z-[1100] flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-btn text-on-primary shadow-lg shadow-primary/30 transition active:scale-90"
+                class="absolute bottom-5 right-5 z-[1100] flex h-14 w-14 items-center justify-center rounded-2xl text-text shadow-lg ring-1 ring-white/20 backdrop-blur-xl transition active:scale-90"
+                style="background: color-mix(in srgb, var(--color-surface) 65%, transparent)"
               >
                 <svg
                   viewBox="0 0 24 24"
