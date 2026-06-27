@@ -50,30 +50,63 @@ export class GeocodingService {
    */
   async buscarDireccion(texto: string): Promise<ResultadoBusqueda[]> {
     if (!texto.trim()) return [];
-    // URLSearchParams codifica las comas del bbox como %2C y Photon las rechaza.
-    // Se construye la URL manualmente para mantener las comas literales.
+    // Sin header Accept para evitar CORS preflight. Bias hacia Madrid con lon/lat.
+    // Intentamos Photon primero; si falla, caemos a Nominatim (búsqueda puntual).
+    const resultados = await this.buscarPhoton(texto) ?? await this.buscarNominatim(texto);
+    return resultados;
+  }
+
+  private async buscarPhoton(texto: string): Promise<ResultadoBusqueda[] | null> {
+    // Centro de Madrid como bias (lat/lon). Sin bbox para evitar restricciones.
     const url =
       `https://photon.komoot.io/api/?q=${encodeURIComponent(texto)}` +
-      `&lang=es&limit=5&bbox=-3.95,40.25,-3.45,40.65`;
+      `&lang=es&limit=5&lat=40.4168&lon=-3.7038`;
     try {
-      const resp = await fetch(url, {
-        headers: { Accept: 'application/json' },
-      });
-      if (!resp.ok) return [];
+      const resp = await fetch(url);
+      if (!resp.ok) return null;
       type F = { geometry: { coordinates: [number, number] }; properties: { name?: string; street?: string; housenumber?: string; city?: string; district?: string; county?: string } };
       const data = (await resp.json()) as { features: F[] };
-      return data.features.map((f) => {
-        const p = f.properties;
-        const calle = p.street
-          ? p.housenumber ? `${p.street}, ${p.housenumber}` : p.street
-          : (p.name ?? '');
-        const partes = [calle, p.district ?? p.county, p.city ?? 'Madrid'].filter(Boolean);
-        return {
-          etiqueta: partes.join(' · '),
-          lat: f.geometry.coordinates[1], // GeoJSON = [lng, lat] → invertir
-          lng: f.geometry.coordinates[0],
-        };
+      if (!data.features?.length) return null;
+      return data.features
+        .filter((f) => {
+          // Filtrar solo resultados cercanos a Madrid (radio ~30 km)
+          const lat = f.geometry.coordinates[1];
+          const lng = f.geometry.coordinates[0];
+          return lat > 40.1 && lat < 40.7 && lng > -4.1 && lng < -3.3;
+        })
+        .map((f) => {
+          const p = f.properties;
+          const calle = p.street
+            ? p.housenumber ? `${p.street}, ${p.housenumber}` : p.street
+            : (p.name ?? '');
+          const partes = [calle, p.district ?? p.county, p.city ?? 'Madrid'].filter(Boolean);
+          return {
+            etiqueta: partes.join(' · '),
+            lat: f.geometry.coordinates[1],
+            lng: f.geometry.coordinates[0],
+          };
+        });
+    } catch {
+      return null;
+    }
+  }
+
+  private async buscarNominatim(texto: string): Promise<ResultadoBusqueda[]> {
+    // Nominatim: búsqueda puntual (no autocomplete), limitada a Madrid.
+    const url =
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(texto + ' Madrid')}` +
+      `&format=jsonv2&limit=5&countrycodes=es&accept-language=es`;
+    try {
+      const resp = await fetch(url, {
+        headers: { 'User-Agent': 'PisoTracker/1.0' },
       });
+      if (!resp.ok) return [];
+      const data = (await resp.json()) as { display_name: string; lat: string; lon: string }[];
+      return data.map((r) => ({
+        etiqueta: r.display_name.split(',').slice(0, 3).join(', '),
+        lat: parseFloat(r.lat),
+        lng: parseFloat(r.lon),
+      }));
     } catch {
       return [];
     }
