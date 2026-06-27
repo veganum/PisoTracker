@@ -240,7 +240,7 @@ export class MapaView {
     this.limpiarMarcadorBusqueda();
     this.mapa.flyTo([r.lat, r.lng], 17);
     const marcador = L.marker([r.lat, r.lng], { icon: this.iconoBusqueda() });
-    marcador.bindPopup(this.htmlPopupBusqueda(r));
+    marcador.bindPopup(this.htmlPopupBusqueda(r), { className: 'popup-busqueda' });
     marcador.on('popupopen', (e: L.PopupEvent) => {
       const raiz = e.popup.getElement();
       if (!raiz) return;
@@ -415,17 +415,19 @@ export class MapaView {
   private htmlPopupBusqueda(r: ResultadoBusqueda): string {
     return `
       <div style="min-width:190px;font-family:inherit">
-        <p style="margin:0;font-size:11px;color:#71717a;font-weight:500">📍 Dirección encontrada</p>
-        <p style="margin:4px 0 10px;font-weight:600;font-size:13px;color:#18181b;line-height:1.3">${this.escapar(r.etiqueta)}</p>
+        <p style="margin:0;font-size:11px;color:var(--color-muted);font-weight:500">📍 Dirección encontrada</p>
+        <p style="margin:4px 0 10px;font-weight:600;font-size:13px;color:var(--color-text);line-height:1.3">${this.escapar(r.etiqueta)}</p>
         <div style="display:flex;gap:6px">
           <button class="btn-anadir-busqueda"
-            style="flex:1;padding:8px 0;border:0;border-radius:8px;background:#4f46e5;
-                   color:#fff;font-weight:600;font-size:12px;cursor:pointer">
+            style="flex:1;padding:8px 0;border:0;border-radius:8px;
+                   background:var(--color-primary-btn);color:var(--color-on-primary);
+                   font-weight:600;font-size:12px;cursor:pointer">
             ➕ Añadir piso aquí
           </button>
           <button class="btn-cerrar-busqueda"
-            style="padding:8px 10px;border:0;border-radius:8px;background:#f4f4f5;
-                   color:#71717a;font-weight:600;font-size:12px;cursor:pointer">
+            style="padding:8px 10px;border:0;border-radius:8px;
+                   background:var(--color-surface-2);color:var(--color-muted);
+                   font-weight:600;font-size:12px;cursor:pointer">
             ✕
           </button>
         </div>

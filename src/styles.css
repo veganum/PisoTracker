@@ -230,3 +230,26 @@ body {
   background: transparent;
   border: 0;
 }
+
+/* Popup del buscador: liquid glass igual que los controles del mapa */
+.popup-busqueda .leaflet-popup-content-wrapper {
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  padding: 0;
+}
+.popup-busqueda .leaflet-popup-content {
+  margin: 14px 16px;
+}
+.popup-busqueda .leaflet-popup-tip-container .leaflet-popup-tip {
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: none;
+}
+.popup-busqueda .leaflet-popup-close-button {
+  display: none;
+}
