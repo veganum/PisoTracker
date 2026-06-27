@@ -144,6 +144,22 @@ import { Piso } from '../../models/piso.model';
               Ver anuncio
             </a>
           }
+          <!-- Comparativa: verde (solo en favoritos) -->
+          @if (estaEnComparativa() !== null) {
+            <button
+              type="button"
+              (click)="comparativa.emit()"
+              [attr.aria-label]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
+              [attr.title]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
+              class="flex flex-1 items-center justify-center rounded-2xl py-2.5 transition active:scale-[0.96]"
+              [class.bg-success/25]="estaEnComparativa()"
+              [class.text-success]="estaEnComparativa()"
+              [class.bg-success/10]="!estaEnComparativa()"
+              [class.text-success/60]="!estaEnComparativa()"
+            >
+              📊
+            </button>
+          }
           <!-- Editar: amarillo -->
           <button
             type="button"
@@ -154,29 +170,13 @@ import { Piso } from '../../models/piso.model';
           >
             <app-icono nombre="pencil" [tam]="18" />
           </button>
-          <!-- Comparativa: verde (solo en favoritos) -->
-          @if (estaEnComparativa() !== null) {
-            <button
-              type="button"
-              (click)="comparativa.emit()"
-              [attr.aria-label]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
-              [attr.title]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
-              class="flex items-center justify-center rounded-2xl px-3 py-2.5 transition active:scale-[0.96]"
-              [class.bg-success/25]="estaEnComparativa()"
-              [class.text-success]="estaEnComparativa()"
-              [class.bg-success/10]="!estaEnComparativa()"
-              [class.text-success/60]="!estaEnComparativa()"
-            >
-              📊
-            </button>
-          }
           <!-- Eliminar: rojo -->
           <button
             type="button"
             (click)="borrar.emit(piso())"
             aria-label="Descartar piso"
             title="Descartar"
-            class="flex items-center justify-center rounded-2xl bg-danger/10 px-3 py-2.5 text-danger transition active:scale-[0.96]"
+            class="flex flex-1 items-center justify-center rounded-2xl bg-danger/10 py-2.5 text-danger transition active:scale-[0.96]"
           >
             <app-icono nombre="trash" [tam]="18" />
           </button>
