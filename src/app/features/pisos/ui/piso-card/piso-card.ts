@@ -151,13 +151,13 @@ import { Piso } from '../../models/piso.model';
               (click)="comparativa.emit()"
               [attr.aria-label]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
               [attr.title]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
-              class="flex flex-1 items-center justify-center rounded-2xl py-2.5 transition active:scale-[0.96]"
+              class="flex h-11 flex-1 items-center justify-center rounded-2xl transition active:scale-[0.96]"
               [class.bg-success/25]="estaEnComparativa()"
               [class.text-success]="estaEnComparativa()"
               [class.bg-success/10]="!estaEnComparativa()"
               [class.text-success/60]="!estaEnComparativa()"
             >
-              📊
+              <span class="text-base leading-none">📊</span>
             </button>
           }
           <!-- Editar: amarillo -->
@@ -166,7 +166,7 @@ import { Piso } from '../../models/piso.model';
             (click)="editar.emit(piso())"
             aria-label="Editar piso"
             title="Editar"
-            class="flex flex-1 items-center justify-center rounded-2xl bg-warning/15 py-2.5 text-warning transition active:scale-[0.96]"
+            class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-warning/15 text-warning transition active:scale-[0.96]"
           >
             <app-icono nombre="pencil" [tam]="18" />
           </button>
@@ -176,7 +176,7 @@ import { Piso } from '../../models/piso.model';
             (click)="borrar.emit(piso())"
             aria-label="Descartar piso"
             title="Descartar"
-            class="flex flex-1 items-center justify-center rounded-2xl bg-danger/10 py-2.5 text-danger transition active:scale-[0.96]"
+            class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-danger/10 text-danger transition active:scale-[0.96]"
           >
             <app-icono nombre="trash" [tam]="18" />
           </button>
