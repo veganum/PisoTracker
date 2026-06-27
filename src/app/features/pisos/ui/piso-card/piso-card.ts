@@ -132,26 +132,29 @@ import { Piso } from '../../models/piso.model';
           <p class="mt-2.5 line-clamp-2 text-sm text-muted">{{ piso().notas }}</p>
         }
 
-        <!-- Acciones -->
+        <!-- Acciones: todos los botones a la misma altura (py-2.5) -->
         <div class="mt-3.5 flex items-center gap-2">
           @if (piso().url.trim()) {
             <a
               [href]="piso().url"
               target="_blank"
               rel="noopener"
-              class="btn-suave flex-1 text-center text-sm"
+              class="flex flex-1 items-center justify-center rounded-2xl bg-surface-2 py-2.5 text-sm font-medium text-text ring-1 ring-border transition active:scale-[0.96]"
             >
               Ver anuncio
             </a>
           }
+          <!-- Editar: solo icono -->
           <button
             type="button"
             (click)="editar.emit(piso())"
-            class="btn-primario flex flex-1 items-center justify-center gap-1.5 py-2.5 text-sm"
+            aria-label="Editar piso"
+            title="Editar"
+            class="flex flex-1 items-center justify-center rounded-2xl bg-primary-btn py-2.5 text-on-primary shadow-sm transition active:scale-[0.96]"
           >
-            <app-icono nombre="pencil" [tam]="16" /> Editar
+            <app-icono nombre="pencil" [tam]="18" />
           </button>
-          <!-- Botón de comparativa (solo en favoritos) -->
+          <!-- Comparativa (solo en favoritos) -->
           @if (estaEnComparativa() !== null) {
             <button
               type="button"
@@ -169,11 +172,13 @@ import { Piso } from '../../models/piso.model';
               📊
             </button>
           }
+          <!-- Eliminar: amarillo -->
           <button
             type="button"
             (click)="borrar.emit(piso())"
             aria-label="Descartar piso"
-            class="flex items-center justify-center rounded-2xl bg-danger/10 px-3 py-2.5 text-danger transition active:scale-[0.96]"
+            title="Descartar"
+            class="flex items-center justify-center rounded-2xl bg-warning/15 px-3 py-2.5 text-warning transition active:scale-[0.96]"
           >
             <app-icono nombre="trash" [tam]="18" />
           </button>
