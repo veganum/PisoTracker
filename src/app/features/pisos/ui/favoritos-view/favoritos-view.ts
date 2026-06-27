@@ -36,44 +36,15 @@ const MAX_SELECCION = 3;
 
         @for (fav of favoritos(); track fav.piso.id; let i = $index) {
           <div class="space-y-1.5">
-            <div
-              class="rounded-3xl transition-all"
-              [class.ring-2]="estaSeleccionado(fav.piso.id)"
-              [class.ring-primary]="estaSeleccionado(fav.piso.id)"
-            >
-              <app-piso-card
-                [piso]="fav.piso"
-                [ranking]="i + 1"
-                [puntos]="fav.puntos"
-                (editar)="editar.emit($event)"
-                (borrar)="borrar.emit($event)"
-              />
-            </div>
-
-            <!-- Botón de selección para comparativa (inline, sin solapar la card) -->
-            @if (favoritos().length >= 2) {
-              <button
-                type="button"
-                (click)="alternarSeleccion(fav.piso.id)"
-                [disabled]="!puedeSeleccionar(fav.piso.id)"
-                class="flex w-full items-center justify-center gap-2 rounded-2xl py-2 text-xs font-semibold transition"
-                [class.bg-primary/15]="estaSeleccionado(fav.piso.id)"
-                [class.text-primary]="estaSeleccionado(fav.piso.id)"
-                [class.bg-surface-2]="!estaSeleccionado(fav.piso.id)"
-                [class.text-muted]="!estaSeleccionado(fav.piso.id)"
-                [class.opacity-40]="!puedeSeleccionar(fav.piso.id)"
-              >
-                @if (estaSeleccionado(fav.piso.id)) {
-                  <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor"
-                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  Seleccionado para comparar
-                } @else {
-                  Añadir a comparativa
-                }
-              </button>
-            }
+            <app-piso-card
+              [piso]="fav.piso"
+              [ranking]="i + 1"
+              [puntos]="fav.puntos"
+              [estaEnComparativa]="favoritos().length >= 2 ? estaSeleccionado(fav.piso.id) : null"
+              (editar)="editar.emit($event)"
+              (borrar)="borrar.emit($event)"
+              (comparativa)="alternarSeleccion(fav.piso.id)"
+            />
 
             <!-- Desglose de puntuación -->
             <div class="flex flex-wrap gap-1.5 px-1">

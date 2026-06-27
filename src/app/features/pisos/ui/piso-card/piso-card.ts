@@ -151,6 +151,24 @@ import { Piso } from '../../models/piso.model';
           >
             <app-icono nombre="pencil" [tam]="16" /> Editar
           </button>
+          <!-- Botón de comparativa (solo en favoritos) -->
+          @if (estaEnComparativa() !== null) {
+            <button
+              type="button"
+              (click)="comparativa.emit()"
+              [attr.aria-label]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
+              [attr.title]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
+              class="flex items-center justify-center rounded-2xl px-3 py-2.5 ring-1 transition active:scale-[0.96]"
+              [class.bg-primary/15]="estaEnComparativa()"
+              [class.text-primary]="estaEnComparativa()"
+              [class.ring-primary/30]="estaEnComparativa()"
+              [class.bg-surface-2]="!estaEnComparativa()"
+              [class.text-muted]="!estaEnComparativa()"
+              [class.ring-border]="!estaEnComparativa()"
+            >
+              📊
+            </button>
+          }
           <button
             type="button"
             (click)="borrar.emit(piso())"
@@ -174,7 +192,9 @@ export class PisoCard {
 
   readonly editar = output<Piso>();
   readonly borrar = output<Piso>();
+  /** null = no mostrar botón; true/false = mostrar activo/inactivo */
+  readonly estaEnComparativa = input<boolean | null>(null);
+  readonly comparativa = output<void>();
 
-  /** Color del estado para el badge. */
   readonly color = computed(() => colorEstado(this.piso().estado));
 }
