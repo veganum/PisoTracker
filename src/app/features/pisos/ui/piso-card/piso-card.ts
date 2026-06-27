@@ -152,10 +152,10 @@ import { Piso } from '../../models/piso.model';
               [attr.aria-label]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
               [attr.title]="estaEnComparativa() ? 'Quitar de comparativa' : 'Añadir a comparativa'"
               class="flex h-11 flex-1 items-center justify-center rounded-2xl transition active:scale-[0.96]"
-              [class.bg-success/25]="estaEnComparativa()"
-              [class.text-success]="estaEnComparativa()"
-              [class.bg-success/10]="!estaEnComparativa()"
-              [class.text-success/60]="!estaEnComparativa()"
+              [class.bg-violet-500/25]="estaEnComparativa()"
+              [class.text-violet-500]="estaEnComparativa()"
+              [class.bg-violet-500/10]="!estaEnComparativa()"
+              [class.text-violet-400]="!estaEnComparativa()"
             >
               <span class="text-base leading-none">📊</span>
             </button>
