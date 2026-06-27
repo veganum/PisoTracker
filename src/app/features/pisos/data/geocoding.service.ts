@@ -50,14 +50,13 @@ export class GeocodingService {
    */
   async buscarDireccion(texto: string): Promise<ResultadoBusqueda[]> {
     if (!texto.trim()) return [];
-    const params = new URLSearchParams({
-      q: texto,
-      lang: 'es',
-      limit: '5',
-      bbox: '-3.9,40.3,-3.5,40.6',
-    });
+    // URLSearchParams codifica las comas del bbox como %2C y Photon las rechaza.
+    // Se construye la URL manualmente para mantener las comas literales.
+    const url =
+      `https://photon.komoot.io/api/?q=${encodeURIComponent(texto)}` +
+      `&lang=es&limit=5&bbox=-3.95,40.25,-3.45,40.65`;
     try {
-      const resp = await fetch(`https://photon.komoot.io/api/?${params}`, {
+      const resp = await fetch(url, {
         headers: { Accept: 'application/json' },
       });
       if (!resp.ok) return [];
