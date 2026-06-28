@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo con esquinas redondeadas (para uso "any") -->
+  <rect width="512" height="512" rx="96" fill="#4f46e5"/>
+  <text x="256" y="370" text-anchor="middle"
+    font-size="300"
+    font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">🏠</text>
+</svg>

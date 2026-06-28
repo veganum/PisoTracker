@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo full-bleed (la zona segura maskable es el 80% central = 410px) -->
+  <rect width="512" height="512" fill="#4f46e5"/>
+  <!-- Emoji centrado en zona segura: ~51px de margen en cada lado -->
+  <text x="256" y="350" text-anchor="middle"
+    font-size="260"
+    font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">🏠</text>
+</svg>

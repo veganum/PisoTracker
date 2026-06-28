@@ -38,6 +38,15 @@
   ],
   "dataGroups": [
     {
+      "name": "photon",
+      "urls": ["https://photon.komoot.io/**"],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 50,
+        "maxAge": "1d"
+      }
+    },
+    {
       "name": "nominatim",
       "urls": ["https://nominatim.openstreetmap.org/**"],
       "cacheConfig": {

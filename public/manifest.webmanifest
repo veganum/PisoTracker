@@ -1,18 +1,32 @@
 {
   "name": "PisoTracker",
   "short_name": "PisoTracker",
-  "description": "Seguimiento de pisos en venta en Madrid",
+  "description": "Seguimiento personal de pisos en venta en Madrid",
+  "lang": "es",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#f4f4f5",
+  "background_color": "#18181b",
   "theme_color": "#4f46e5",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "icon-any.svg",
       "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
       "type": "image/x-icon",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
