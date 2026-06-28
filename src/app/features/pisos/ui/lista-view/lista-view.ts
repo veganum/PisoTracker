@@ -24,19 +24,21 @@ import { PisoCard } from '../piso-card/piso-card';
       <!-- Toggle Activos / Descartados -->
       <div class="flex gap-1 rounded-2xl bg-surface-2 p-1 ring-1 ring-border">
         <button type="button" (click)="vistaDescartados.set(false)"
-          class="flex-1 rounded-xl py-2 text-sm font-semibold transition"
+          class="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-semibold transition"
           [class.bg-surface]="!vistaDescartados()"
           [class.text-text]="!vistaDescartados()"
           [class.shadow-sm]="!vistaDescartados()"
           [class.text-muted]="vistaDescartados()">
+          <span class="text-base leading-none">🏠</span>
           Activos ({{ store.pisosFiltrados().length }})
         </button>
         <button type="button" (click)="vistaDescartados.set(true)"
-          class="flex-1 rounded-xl py-2 text-sm font-semibold transition"
+          class="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-semibold transition"
           [class.bg-surface]="vistaDescartados()"
           [class.text-text]="vistaDescartados()"
           [class.shadow-sm]="vistaDescartados()"
           [class.text-muted]="!vistaDescartados()">
+          <app-icono nombre="trash" [tam]="14" />
           Descartados ({{ store.pisosDescartados().length }})
         </button>
       </div>
