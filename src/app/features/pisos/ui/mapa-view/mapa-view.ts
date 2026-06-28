@@ -165,7 +165,7 @@ export class MapaView {
   readonly descartar = output<Piso>();
   readonly filtrarDistrito = output<Distrito>();
 
-  readonly estados = ESTADOS_PIPELINE;
+  readonly estados = ESTADOS_PIPELINE.filter((e) => e.valor !== 'Descartado');
   readonly distritosVisibles = signal(false);
 
   // ── Buscador ──
@@ -314,7 +314,7 @@ export class MapaView {
 
     this.capaMarcadores = L.layerGroup().addTo(mapa);
     this.mapa = mapa;
-    this.redibujarMarcadores(this.store.pisos());
+    this.redibujarMarcadores(this.store.pisosFiltrados());
   }
 
   centrarEnTodos(): void {
