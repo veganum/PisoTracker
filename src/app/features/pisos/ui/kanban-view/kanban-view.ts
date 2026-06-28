@@ -172,6 +172,17 @@ const SIGUIENTE_ESTADO: Partial<Record<EstadoPipeline, EstadoPipeline>> = {
             </button>
             <button
               type="button"
+              (click)="aplicarDecision('Descartado')"
+              class="flex w-full items-center gap-3 rounded-2xl bg-danger/10 px-4 py-3.5 text-left transition active:scale-[0.98]"
+            >
+              <span class="text-xl">🗑️</span>
+              <div>
+                <p class="text-sm font-semibold text-danger">Descartar</p>
+                <p class="text-xs text-muted">Archivarlo — siempre puedes restaurarlo desde Lista</p>
+              </div>
+            </button>
+            <button
+              type="button"
               (click)="pisoDecision.set(null)"
               class="w-full rounded-2xl bg-surface-2 px-4 py-3.5 text-sm font-medium text-muted transition active:scale-[0.98]"
             >

@@ -448,7 +448,7 @@ export class MapaView {
           <button class="btn-editar" style="flex:1;padding:6px 0;border:0;border-radius:8px;
                   background:#18181b;color:#fff;font-weight:600;cursor:pointer">Editar</button>
           <button class="btn-borrar" style="flex:1;padding:6px 0;border:0;border-radius:8px;
-                  background:#fee2e2;color:#dc2626;font-weight:600;cursor:pointer">Borrar</button>
+                  background:#fee2e2;color:#dc2626;font-weight:600;cursor:pointer">Descartar</button>
         </div>
       </div>`;
   }

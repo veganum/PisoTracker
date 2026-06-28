@@ -335,8 +335,13 @@ export class PisosPage {
   }
 
   restaurarPiso(piso: Piso): void {
-    this.store.actualizar({ ...piso, estado: 'Interesado' });
-    this.toast.mostrar('Piso restaurado');
+    // Restaurar al estado anterior al descarte (historialEstados), o 'Interesado' si no hay historial.
+    const historial = piso.historialEstados ?? [];
+    const estadoAnterior = [...historial]
+      .reverse()
+      .find((e) => e.estado !== 'Descartado')?.estado ?? 'Interesado';
+    this.store.actualizar({ ...piso, estado: estadoAnterior });
+    this.toast.mostrar(`Restaurado a ${estadoAnterior}`);
   }
 
   // --- Borrado permanente (solo desde Descartados) ---
