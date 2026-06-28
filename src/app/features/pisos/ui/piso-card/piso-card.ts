@@ -186,16 +186,39 @@ import { Piso } from '../../models/piso.model';
           >
             <app-icono nombre="pencil" [tam]="18" />
           </button>
-          <!-- Eliminar: rojo -->
-          <button
-            type="button"
-            (click)="borrar.emit(piso())"
-            aria-label="Descartar piso"
-            title="Descartar"
-            class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-danger/10 text-danger ring-1 ring-danger/25 transition active:scale-[0.96]"
-          >
-            <app-icono nombre="trash" [tam]="18" />
-          </button>
+          @if (piso().estado === 'Descartado') {
+            <!-- Restaurar (desde vista descartados) -->
+            <button
+              type="button"
+              (click)="restaurar.emit(piso())"
+              aria-label="Restaurar piso"
+              title="Restaurar"
+              class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-success/10 text-success ring-1 ring-success/25 transition active:scale-[0.96]"
+            >
+              <span class="text-base leading-none">↩</span>
+            </button>
+            <!-- Eliminar definitivamente -->
+            <button
+              type="button"
+              (click)="borrar.emit(piso())"
+              aria-label="Eliminar definitivamente"
+              title="Eliminar definitivamente"
+              class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-danger/10 text-danger ring-1 ring-danger/25 transition active:scale-[0.96]"
+            >
+              <app-icono nombre="trash" [tam]="18" />
+            </button>
+          } @else {
+            <!-- Descartar (reversible) -->
+            <button
+              type="button"
+              (click)="descartar.emit(piso())"
+              aria-label="Descartar piso"
+              title="Descartar (reversible)"
+              class="flex h-11 flex-1 items-center justify-center rounded-2xl bg-danger/10 text-danger ring-1 ring-danger/25 transition active:scale-[0.96]"
+            >
+              <app-icono nombre="trash" [tam]="18" />
+            </button>
+          }
         </div>
       </div>
     </article>
@@ -345,7 +368,12 @@ export class PisoCard {
   readonly puntos = input<number | null>(null);
 
   readonly editar = output<Piso>();
+  /** Descarta el piso (reversible): cambia estado a Descartado. */
+  readonly descartar = output<Piso>();
+  /** Elimina el piso permanentemente (solo desde vista Descartados). */
   readonly borrar = output<Piso>();
+  /** Restaura un piso descartado a Interesado. */
+  readonly restaurar = output<Piso>();
   /** null = no mostrar botón; true/false = mostrar activo/inactivo */
   readonly estaEnComparativa = input<boolean | null>(null);
   readonly comparativa = output<void>();

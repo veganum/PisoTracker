@@ -141,20 +141,25 @@ interface ConfigPestana {
                   class="block h-full"
                   (nuevo)="abrirNuevo($event)"
                   (editar)="abrirEditar($event)"
-                  (borrar)="pedirBorrar($event)"
+                  (descartar)="descartarPiso($event)"
                   (filtrarDistrito)="filtrarPorDistrito($event)"
                 />
               }
               @case ('lista') {
                 <div class="h-full overflow-y-auto p-4 pb-24">
-                  <app-lista-view (editar)="abrirEditar($event)" (borrar)="pedirBorrar($event)" />
+                  <app-lista-view
+                    (editar)="abrirEditar($event)"
+                    (descartar)="descartarPiso($event)"
+                    (restaurar)="restaurarPiso($event)"
+                    (borrar)="pedirBorrar($event)"
+                  />
                 </div>
               }
               @case ('favoritos') {
                 <div class="h-full overflow-y-auto p-4 pb-24">
                   <app-favoritos-view
                     (editar)="abrirEditar($event)"
-                    (borrar)="pedirBorrar($event)"
+                    (descartar)="descartarPiso($event)"
                   />
                 </div>
               }
@@ -165,7 +170,7 @@ interface ConfigPestana {
               }
               @case ('yo') {
                 <div class="h-full overflow-y-auto p-4 pb-24">
-                  <app-yo-view (editar)="abrirEditar($event)" (borrar)="pedirBorrar($event)" />
+                  <app-yo-view (editar)="abrirEditar($event)" (descartar)="descartarPiso($event)" />
                 </div>
               }
             }
@@ -234,11 +239,11 @@ interface ConfigPestana {
     <!-- Confirmación de borrado -->
     @if (pisoBorrar(); as p) {
       <app-confirm-dialog
-        titulo="Descartar piso"
+        titulo="Eliminar piso definitivamente"
         [mensaje]="
           'Se eliminará definitivamente «' + p.direccion + '». Esta acción no se puede deshacer.'
         "
-        textoConfirmar="Descartar"
+        textoConfirmar="Eliminar"
         (confirmar)="confirmarBorrar()"
         (cancelar)="cancelarBorrar()"
       />
@@ -322,7 +327,19 @@ export class PisosPage {
     this.cerrarForm();
   }
 
-  // --- Borrado ---
+  // --- Descartar (reversible) ---
+
+  descartarPiso(piso: Piso): void {
+    this.store.actualizar({ ...piso, estado: 'Descartado' });
+    this.toast.mostrar('Piso descartado');
+  }
+
+  restaurarPiso(piso: Piso): void {
+    this.store.actualizar({ ...piso, estado: 'Interesado' });
+    this.toast.mostrar('Piso restaurado');
+  }
+
+  // --- Borrado permanente (solo desde Descartados) ---
 
   pedirBorrar(piso: Piso): void {
     this.pisoBorrar.set(piso);
@@ -332,7 +349,7 @@ export class PisosPage {
     const piso = this.pisoBorrar();
     if (piso) {
       this.store.borrar(piso.id);
-      this.toast.mostrar('Piso descartado');
+      this.toast.mostrar('Piso eliminado definitivamente');
     }
     this.pisoBorrar.set(null);
   }

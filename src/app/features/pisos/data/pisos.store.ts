@@ -194,6 +194,12 @@ export class PisosStore {
   readonly hayFiltros = computed(() => this.numFiltros() > 0);
 
   /** Pisos tras aplicar los filtros activos (sin ordenar). El mapa lo usa para sincronizar marcadores. */
+  /** Pisos descartados (archivo reversible). */
+  readonly pisosDescartados = computed(() =>
+    this.pisos().filter((p) => p.estado === 'Descartado'),
+  );
+
+  /** Pisos activos (excluye Descartado) tras aplicar los filtros. */
   readonly pisosFiltrados = computed(() => {
     const distrito = this.fDistrito();
     const barrio = this.fBarrio();
@@ -202,10 +208,12 @@ export class PisosStore {
     const estadoPiso = this.fEstadoPiso() as EstadoPiso | '';
     const q = this.busqueda().trim().toLowerCase();
 
+    const activos = this.pisos().filter((p) => p.estado !== 'Descartado');
+
     if (!distrito && !barrio && !estado && !contacto && !estadoPiso && !q) {
-      return this.pisos();
+      return activos;
     }
-    return this.pisos().filter((p) => {
+    return activos.filter((p) => {
       if (distrito && p.distrito !== distrito) return false;
       if (barrio && p.barrio !== barrio) return false;
       if (estado && p.estado !== estado) return false;

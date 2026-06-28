@@ -162,7 +162,7 @@ export class MapaView {
 
   readonly nuevo = output<{ lat: number; lng: number }>();
   readonly editar = output<Piso>();
-  readonly borrar = output<Piso>();
+  readonly descartar = output<Piso>();
   readonly filtrarDistrito = output<Distrito>();
 
   readonly estados = ESTADOS_PIPELINE;
@@ -462,7 +462,7 @@ export class MapaView {
     });
     raiz.querySelector<HTMLButtonElement>('.btn-borrar')?.addEventListener('click', () => {
       this.mapa?.closePopup();
-      this.borrar.emit(piso);
+      this.descartar.emit(piso);
     });
   }
 

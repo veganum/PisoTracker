@@ -147,7 +147,7 @@ function formatearCita(piso: Piso): CitaVista {
                     </button>
                     <button
                       type="button"
-                      (click)="borrar.emit(c.piso)"
+                      (click)="descartar.emit(c.piso)"
                       class="flex h-9 w-9 items-center justify-center rounded-xl text-danger ring-1 ring-danger/20 transition active:scale-90"
                       aria-label="Descartar piso"
                     >
@@ -173,7 +173,7 @@ export class YoView {
   private readonly store = inject(PisosStore);
 
   readonly editar = output<Piso>();
-  readonly borrar = output<Piso>();
+  readonly descartar = output<Piso>();
 
   readonly segmento = signal<Segmento>('citas');
 

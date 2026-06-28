@@ -12,7 +12,8 @@ export type EstadoPipeline =
   | 'Agendado'
   | 'Visitado'
   | 'Favorito'
-  | 'Pendiente condiciones';
+  | 'Pendiente condiciones'
+  | 'Descartado';
 
 /** Metadatos de presentación de cada estado del pipeline. */
 export interface ConfigEstado {
@@ -54,6 +55,13 @@ export const ESTADOS_PIPELINE: readonly ConfigEstado[] = [
     significado: 'Esperando bajada de precio o cambio de condiciones',
     flujo: false,
     icono: '⏳',
+  },
+  {
+    valor: 'Descartado',
+    color: '#9ca3af',
+    significado: 'Descartado — archivado sin borrar',
+    flujo: false,
+    icono: '🗑️',
   },
 ] as const;
 

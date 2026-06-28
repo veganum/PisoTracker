@@ -42,7 +42,7 @@ const MAX_SELECCION = 3;
               [puntos]="fav.puntos"
               [estaEnComparativa]="favoritos().length >= 2 ? estaSeleccionado(fav.piso.id) : null"
               (editar)="editar.emit($event)"
-              (borrar)="borrar.emit($event)"
+              (descartar)="descartar.emit($event)"
               (comparativa)="alternarSeleccion(fav.piso.id)"
             />
 
@@ -90,7 +90,7 @@ export class FavoritosView {
   private readonly store = inject(PisosStore);
 
   readonly editar = output<Piso>();
-  readonly borrar = output<Piso>();
+  readonly descartar = output<Piso>();
 
   readonly favoritos = this.store.favoritos;
 
