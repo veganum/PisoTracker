@@ -1,110 +1,98 @@
 # PisoTracker 🏠
 
 Aplicación web **mobile-first** para el seguimiento personal de pisos en venta en
-Madrid durante un proceso de búsqueda de vivienda. Marca pisos en un mapa,
-gestiónalos en un pipeline de estados y compara tus favoritos por una puntuación
-automática.
+Madrid durante un proceso de búsqueda de vivienda.
 
 Construida con **Angular 22** (standalone + **zoneless** + **signals**),
 **Tailwind CSS v4** y **Leaflet** (OpenStreetMap, sin API key).
 
 ## Funcionalidades
 
-- 🗺️ **Mapa** (Leaflet): marcadores tipo gota coloreados por estado. Toca el
-  mapa para añadir un piso con las coordenadas ya fijadas.
-- 📋 **Lista**: tarjetas con todos los datos y filtros combinables (barrio,
-  estado del pipeline, tipo de contacto, estado del inmueble).
-- ⭐ **Favoritos**: solo los marcados como favorito, ordenados por puntuación
-  automática con ranking numerado.
-- 🏢 **Agencias**: inmobiliarias detectadas automáticamente, con sus honorarios,
-  comisión, exclusiva y notas (editable y persistido).
-- Persistencia automática en `localStorage` (intercambiable, ver más abajo).
+- 🗺️ **Mapa** — marcadores coloreados por estado, buscador de calles (Photon/OSM,
+  sin API key, con voz), capa de distritos interactiva, controles liquid glass.
+- 📋 **Lista** — filtros persistentes (barrio, estado, contacto, reforma),
+  toggle Activos / Descartados.
+- ⭐ **Favoritos** — puntuación automática con ranking, comparativa de 2-3 pisos
+  en tabla paralela.
+- 📊 **Mi tablero** — kanban de los 4 estados del flujo. Tap en una card avanza
+  el estado. Al llegar a Visitado aparece un sheet de decisión.
+- 👤 **Yo** — agenda de citas próximas y guion de preguntas por etapa.
+- 🏢 **Inmobiliarias / Financieras** — condiciones reales (TIN, diferencial, TAE,
+  plazo, comisiones). Pisos asociados por inmobiliaria.
+- 💰 **Calculadora de coste real** — desde cualquier piso: ITP, notaría, registro,
+  tasación y cuota hipotecaria, todo editable.
+- 🗑️ **Descartar** — estado reversible: archiva el piso sin borrarlo. Restaura
+  automáticamente al estado previo al descarte.
+- 📜 **Historial de estados** — registro automático de cada cambio de estado con
+  fecha, visible en el formulario de edición.
+
+## Estados del pipeline
+
+| Estado | Color | Tipo |
+| --- | --- | --- |
+| Interesado | 🔵 azul | Flujo |
+| Contactado | 🟠 naranja | Flujo |
+| Agendado | 🟢 verde | Flujo |
+| Visitado | 🟣 morado | Flujo |
+| Favorito | 🌟 dorado | Lateral |
+| Pendiente condiciones | 🩵 teal | Lateral |
+| Descartado | ⚪ gris | Archivo reversible |
 
 ## Cómo arrancar
 
 ```bash
 npm install
-npm start          # equivale a: ng serve
+npm start          # → http://localhost:4200
 ```
-
-Abre <http://localhost:4200>.
-
-Otros comandos:
 
 ```bash
 npm run build      # compilación de producción
-npm run watch      # build en modo watch (desarrollo)
+npm run watch      # build en modo watch
 ```
 
-> **Nota sobre Node.js:** Angular 22 requiere Node `v22.22.3+`, `v24.15.0+` o
-> `v26.0.0+`.
+> **Nota sobre Node.js:** Angular 22 requiere Node `v22.22.3+`, `v24.15.0+` o `v26.0.0+`.
 
-## Cómo cambiar el adaptador de persistencia
+## Persistencia
 
-La persistencia sigue el patrón **puerto + adaptador** (hexagonal). El store y
-los componentes dependen del puerto `STORAGE`, nunca de una implementación
-concreta. Cambiar de mecanismo es **una sola línea** en
-[`src/app/app.config.ts`](src/app/app.config.ts):
+La persistencia sigue el patrón **puerto + adaptador** (hexagonal). Cambiar de
+mecanismo es una sola línea en `app.config.ts`:
 
 ```typescript
-// localStorage (por defecto: persiste entre recargas)
-{ provide: STORAGE, useClass: LocalStorageAdapter }
-
-// En memoria (no persiste; útil para demos/SSR)
-{ provide: STORAGE, useClass: MemoryStorageAdapter }
-
-// Futuro: API REST / IndexedDB (solo implementar StoragePort)
-{ provide: STORAGE, useClass: RestApiAdapter }
+{ provide: STORAGE, useClass: LocalStorageAdapter }   // por defecto
+{ provide: STORAGE, useClass: MemoryStorageAdapter }  // sin persistencia
 ```
 
-No hay que tocar nada más: ni el `PisosStore` ni los componentes se enteran del
-cambio.
+### Supabase (sincronización en la nube)
 
-## Persistencia en la nube con Supabase (multiusuario)
-
-La app puede sincronizar entre dispositivos usando **Supabase** (Postgres + Auth
-+ RLS). Cada usuario solo ve sus datos.
-
-### 1. Crear la tabla
-
-En tu proyecto de Supabase: **SQL Editor → New query** → pega el contenido de
-[`supabase/estado.sql`](supabase/estado.sql) → **Run**. Crea la tabla `estado`
-(clave-valor por usuario, `valor jsonb`, `user_id` con `default auth.uid()`),
-activa **RLS** y añade las políticas `SELECT/INSERT/UPDATE/DELETE` con la regla
-`auth.uid() = user_id`.
-
-### 2. Crear usuarios
-
-**Authentication → Users → Add user** (marca **Auto Confirm User** para saltar el
-email de confirmación). Repite para cada persona (pensado para grupos pequeños).
-
-### 3. Activar Supabase en la app
-
-En [`src/app/core/config.ts`](src/app/core/config.ts):
+En `src/app/core/config.ts`:
 
 ```typescript
-export const USAR_SUPABASE = true;          // false = localStorage (sin login)
+export const USAR_SUPABASE = true;
 export const SUPABASE_CONFIG = {
   url: 'https://<tu-proyecto>.supabase.co',
-  anonKey: '<tu-anon-key>',                  // pública por diseño; RLS protege
+  anonKey: '<tu-anon-key>',
 };
 ```
 
-> ⚠️ **Seguridad:** la `anon` key es pública y puede ir en el frontend; la
-> seguridad real la dan las **políticas RLS**. **Nunca** pongas la `service_role`
-> key en el cliente.
+Ejecuta `supabase/estado.sql` en tu proyecto para crear la tabla y las políticas
+RLS. Con `USAR_SUPABASE = true` la app requiere login (email + contraseña) y
+sincroniza entre dispositivos en tiempo real.
 
-Con `USAR_SUPABASE = true` la app muestra **login** (email + contraseña) y guarda
-todo en Supabase mediante el `SupabaseAdapter` (mismo puerto `StoragePort`).
+> ⚠️ La `anon` key es pública y puede ir en el frontend; la seguridad la dan las
+> políticas **RLS**. Nunca pongas la `service_role` key en el cliente.
 
 ## Estructura
 
-```
+```text
 src/app/
-├── core/persistence/      → puerto StoragePort + adaptadores + token
+├── core/
+│   ├── persistence/    → StoragePort + adaptadores (local/memoria/supabase)
+│   ├── auth/           → AuthService + pantalla de login
+│   └── supabase/       → cliente + Realtime
 └── features/pisos/
-    ├── models/            → Piso, EstadoPipeline, colores
-    ├── data/              → PisosStore (signals), seed, puntuación, toast
-    ├── ui/                → mapa, lista, favoritos, agencias, form, card, diálogo
-    └── pisos.page.ts      → shell con pestañas inferiores
+    ├── models/         → Piso, EstadoPipeline, Contacto, Guion
+    ├── data/           → PisosStore, GuionStore, geocoding, puntuación…
+    ├── ui/             → mapa, lista, favoritos, kanban, yo, inmobiliarias,
+    │                     form, card, comparativa-modal, contacto-card
+    └── pisos.page.ts   → shell (pestañas móvil + sidebar desktop)
 ```
