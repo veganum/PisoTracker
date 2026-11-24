@@ -9,6 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { generarUuid } from '../../../../utils/uuid';
 import { GeocodingService } from '../../data/geocoding.service';
 import { UbicacionService } from '../../data/ubicacion.service';
 import { PisosStore } from '../../data/pisos.store';
@@ -885,7 +886,7 @@ export class PisoForm implements OnInit {
     }
     const base = this.pisoInicial();
     const piso: Piso = {
-      id: base?.id ?? crypto.randomUUID(),
+      id: base?.id ?? generarUuid(),
       direccion: this.direccion().trim(),
       distrito: this.distrito() as Distrito, // validado: distritoValido() garantiza ≠ ''
       barrio: this.barrio(),

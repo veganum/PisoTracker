@@ -1,6 +1,7 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { STORAGE } from '../../../core/persistence/storage.token';
 import { RealtimeService } from '../../../core/supabase/realtime.service';
+import { generarUuid } from '../../../utils/uuid';
 import { BloqueGuion } from '../models/guion.model';
 import { GUION_SEED } from './guion.seed';
 import { SyncStatusService } from './sync-status.service';
@@ -84,7 +85,7 @@ export class GuionStore {
         b.id === bloqueId
           ? {
               ...b,
-              preguntas: [...b.preguntas, { id: crypto.randomUUID(), texto: limpio, hecha: false }],
+              preguntas: [...b.preguntas, { id: generarUuid(), texto: limpio, hecha: false }],
             }
           : b,
       ),

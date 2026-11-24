@@ -28,7 +28,8 @@ export const appConfig: ApplicationConfig = {
     { provide: STORAGE, useClass: USAR_SUPABASE ? SupabaseAdapter : LocalStorageAdapter },
 
     provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
+      // Los service workers solo existen en contextos seguros (HTTPS o localhost).
+      enabled: !isDevMode() && window.isSecureContext,
       registrationStrategy: 'registerWhenStable:30000',
     }),
   ],

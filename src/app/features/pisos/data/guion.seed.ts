@@ -1,8 +1,9 @@
+import { generarUuid } from '../../../utils/uuid';
 import { BloqueGuion } from '../models/guion.model';
 
 /** Crea una pregunta con id único a partir de su texto. */
 function p(texto: string): { id: string; texto: string; hecha: boolean } {
-  return { id: crypto.randomUUID(), texto, hecha: false };
+  return { id: generarUuid(), texto, hecha: false };
 }
 
 /**
